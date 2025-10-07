@@ -1,0 +1,184 @@
+import pandas as pd
+import numpy as np
+
+
+def calculate_points_home(df):
+    """Calculate points for home team matches."""
+    return np.where(
+        df['FTHG'] > df['FTAG'], 3,  # Win
+        np.where(df['FTHG'] == df['FTAG'], 1, 0)  # Draw or Loss
+    )
+
+
+def calculate_points_away(df):
+    """Calculate points for away team matches."""
+    return np.where(
+        df['FTAG'] > df['FTHG'], 3,  # Win
+        np.where(df['FTAG'] == df['FTHG'], 1, 0)  # Draw or Loss
+    )
+
+
+def split_by_venue(df, team_name):
+    """
+    Split a team's matches into home and away with opponent and points.
+    
+    Args:
+        df: DataFrame with all matches for a team
+        team_name: Name of the team
+        
+    Returns:
+        home_df, away_df: DataFrames with Opponent, Venue, and Points columns added
+    """
+    # Home matches
+    home = df[df['HomeTeam'] == team_name].copy()
+    home['Opponent'] = home['AwayTeam']
+    home['Venue'] = 'H'
+    home['Points'] = calculate_points_home(home)
+    
+    # Away matches
+    away = df[df['AwayTeam'] == team_name].copy()
+    away['Opponent'] = away['HomeTeam']
+    away['Venue'] = 'A'
+    away['Points'] = calculate_points_away(away)
+    
+    return home, away
+
+
+def compare_seasons(cur_season_df, prev_season_df, team_name):
+    """
+    Compare a team's performance across two seasons.
+    
+    Args:
+        cur_season_df: Current season matches DataFrame
+        prev_season_df: Previous season matches DataFrame
+        team_name: Name of the team to analyze
+        
+    Returns:
+        DataFrame with comparison results including differentials and cumulative
+    """
+    # Filter for this team
+    cur_team = cur_season_df[(cur_season_df['HomeTeam'] == team_name) | 
+                              (cur_season_df['AwayTeam'] == team_name)]
+    prev_team = prev_season_df[(prev_season_df['HomeTeam'] == team_name) | 
+                                (prev_season_df['AwayTeam'] == team_name)]
+    
+    # Split by venue for both seasons
+    cur_home, cur_away = split_by_venue(cur_team, team_name)
+    prev_home, prev_away = split_by_venue(prev_team, team_name)
+    
+    # Merge home games (current with previous on Opponent)
+    home_comparison = pd.merge(
+        cur_home[['Date', 'Opponent', 'Venue', 'FTHG', 'FTAG', 'Points']],
+        prev_home[['Opponent', 'Points']],
+        on='Opponent',
+        how='left',
+        suffixes=('_cur', '_prev')
+    )
+    
+    # Merge away games (current with previous on Opponent)
+    away_comparison = pd.merge(
+        cur_away[['Date', 'Opponent', 'Venue', 'FTHG', 'FTAG', 'Points']],
+        prev_away[['Opponent', 'Points']],
+        on='Opponent',
+        how='left',
+        suffixes=('_cur', '_prev')
+    )
+    
+    # Concatenate home and away
+    all_comparisons = pd.concat([home_comparison, away_comparison], ignore_index=True)
+    
+    # Sort by date to see chronological progression
+    all_comparisons['Date'] = pd.to_datetime(all_comparisons['Date'], format='%d/%m/%Y')
+    all_comparisons = all_comparisons.sort_values('Date').reset_index(drop=True)
+    
+    # Remove promoted/relegated teams (NaN in previous season)
+    all_comparisons = all_comparisons.dropna(subset=['Points_prev'])
+    
+    # Calculate differential
+    all_comparisons['Differential'] = all_comparisons['Points_cur'] - all_comparisons['Points_prev']
+    
+    # Calculate cumulative differential
+    all_comparisons['Cumulative'] = all_comparisons['Differential'].cumsum()
+    
+    # Add team name column
+    all_comparisons['Team'] = team_name
+    
+    return all_comparisons
+
+
+def analyze_league(cur_season_df, prev_season_df):
+    """
+    Analyze all teams in a league across two seasons.
+    
+    Args:
+        cur_season_df: Current season matches DataFrame
+        prev_season_df: Previous season matches DataFrame
+        
+    Returns:
+        DataFrame with all teams' comparisons
+    """
+    # Get unique teams from current season
+    teams_home = set(cur_season_df['HomeTeam'].unique())
+    teams_away = set(cur_season_df['AwayTeam'].unique())
+    all_teams = sorted(teams_home | teams_away)
+    
+    # Compare each team
+    all_results = []
+    for team in all_teams:
+        try:
+            team_comparison = compare_seasons(cur_season_df, prev_season_df, team)
+            all_results.append(team_comparison)
+        except Exception as e:
+            print(f"Warning: Could not analyze {team}: {e}")
+    
+    # Concatenate all results
+    league_comparison = pd.concat(all_results, ignore_index=True)
+    
+    return league_comparison
+
+
+def get_latest_standings(league_comparison_df):
+    """
+    Get the latest cumulative differential for each team.
+    
+    Args:
+        league_comparison_df: DataFrame from analyze_league()
+        
+    Returns:
+        DataFrame with teams ranked by cumulative differential
+    """
+    # Get the most recent match for each team (latest cumulative)
+    latest = league_comparison_df.groupby('Team').last().reset_index()
+    latest = latest[['Team', 'Cumulative']].sort_values('Cumulative', ascending=False)
+    latest['Rank'] = range(1, len(latest) + 1)
+    
+    return latest[['Rank', 'Team', 'Cumulative']]
+
+
+# Main execution
+if __name__ == "__main__":
+    # Load data
+    prev = pd.read_csv('serieA2425.csv')
+    cur = pd.read_csv('serieA2526.csv')
+    
+    print("Analyzing all Serie A teams...\n")
+    
+    # Analyze entire league
+    league_results = analyze_league(cur, prev)
+    
+    # Get current standings
+    standings = get_latest_standings(league_results)
+    
+    print("=" * 50)
+    print("SERIE A 2025/26 - PERFORMANCE vs 2024/25")
+    print("=" * 50)
+    print(standings.to_string(index=False))
+    print("=" * 50)
+    
+    # Show Roma's detailed breakdown
+    print("\n" + "=" * 50)
+    print("ROMA - DETAILED MATCH-BY-MATCH")
+    print("=" * 50)
+    roma_matches = league_results[league_results['Team'] == 'Roma']
+    print(roma_matches[['Date', 'Opponent', 'Venue', 'Points_cur', 
+                        'Points_prev', 'Differential', 'Cumulative']].to_string(index=False))
