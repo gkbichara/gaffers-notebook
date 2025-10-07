@@ -158,8 +158,8 @@ def get_latest_standings(league_comparison_df):
 # Main execution
 if __name__ == "__main__":
     # Load data
-    prev = pd.read_csv('serieA2425.csv')
-    cur = pd.read_csv('serieA2526.csv')
+    prev = pd.read_csv('data/serieA/2425.csv')
+    cur = pd.read_csv('data/serieA/2526.csv')
     
     print("Analyzing all Serie A teams...\n")
     
