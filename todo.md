@@ -4,31 +4,43 @@ A running list of features, improvements, and checkpoints for the project.
 
 ---
 
-## ✅ Phase 1 — Setup & One-Team Prototype
-- [ ] Create initial project structure (`data/`, `scripts/`, `notebooks/`, `output/`)
-- [ ] Load Premier League 2024/25 and 2025/26 data (from FBref or similar)
-- [ ] Normalize team names (aliases lookup)
-- [ ] Write helper to compute result → points (3/1/0)
-- [ ] Implement function to find equivalent fixtures (same opponent + venue)
-- [ ] Exclude promoted and relegated teams from comparison
-- [ ] Compute per-fixture differentials (points_25_26 – points_24_25)
-- [ ] Build cumulative differential by GW for one team
+## ✅ Phase 1 — Setup & One-Team Prototype (Serie A)
+- [x] Create initial project structure (`analysis.py`, `scraper.py`, data files)
+- [x] Load Serie A 2024/25 and 2025/26 data (from football-data.co.uk)
+- [x] Normalize team names (handled implicitly via exact match)
+- [x] Write helper to compute result → points (3/1/0)
+- [x] Implement function to find equivalent fixtures (same opponent + venue)
+- [x] Exclude promoted and relegated teams from comparison
+- [x] Compute per-fixture differentials (points_25_26 – points_24_25)
+- [x] Build cumulative differential by GW for one team (Roma)
 - [ ] Visualize line plot (cumulative diff vs GW)
-- [ ] Verify output manually for 1–2 teams
+- [x] Verify output manually for Roma
 
 ---
 
-## 🧩 Phase 2 — League-Wide Extension
-- [ ] Generalize logic for all Premier League teams
-- [ ] Create per-league leaderboard: overperformers vs underperformers
+## 🧩 Phase 2 — League-Wide Extension (Serie A)
+- [x] Generalize logic for all Serie A teams
+- [x] Create per-league leaderboard: overperformers vs underperformers
 - [ ] Plot cumulative differentials for all teams on one chart
 - [ ] Export CSV summaries (`per_fixture_differentials.csv`, `cumulative_differentials.csv`)
 - [ ] Add league-level summary bar chart for latest GW
+- [x] Refactor into reusable functions (modular architecture)
+
+---
+
+## 🕸️ Phase 2.5 — Web Scraping & Automation Setup
+- [ ] Build `scraper.py` to fetch latest CSV files from football-data.co.uk
+- [ ] Create league URL mapping (Serie A, Premier League, La Liga, etc.)
+- [ ] Implement download and update logic for current season data
+- [ ] Add error handling and retry logic
+- [ ] Test weekly update workflow
+- [x] Install web scraping dependencies (requests, beautifulsoup4, selenium)
 
 ---
 
 ## 🌍 Phase 3 — Multi-League Expansion (Top 5 Leagues)
-- [ ] Collect datasets for La Liga, Serie A, Bundesliga, Ligue 1 (2024/25–2025/26)
+- [x] Collect Serie A datasets (2024/25–2025/26) ✓
+- [ ] Collect datasets for Premier League, La Liga, Bundesliga, Ligue 1
 - [ ] Apply normalization across leagues (consistent naming)
 - [ ] Run comparison logic for all leagues
 - [ ] Merge into one global dashboard/table
@@ -54,8 +66,8 @@ A running list of features, improvements, and checkpoints for the project.
 ---
 
 ## 💄 Phase 6 — Documentation & Polish
-- [ ] Write detailed docstrings for each function
-- [ ] Add setup instructions in `requirements.txt` or `environment.yml`
+- [x] Write detailed docstrings for each function
+- [x] Add setup instructions in `requirements.txt` 
 - [ ] Refine README with latest plots and results
 - [ ] Add references section (data sources, credits)
 - [ ] Final QA pass before sharing or publishing results
@@ -74,11 +86,13 @@ A running list of features, improvements, and checkpoints for the project.
 ## 📅 Progress Tracker
 | Date | Milestone | Status |
 |------|------------|--------|
-| 2025-10 | Initial repo setup | ⏳ In progress |
-| 2025-10 | One-team prototype complete | ☐ |
-| 2025-11 | Full Premier League rollout | ☐ |
-| 2025-12 | Top 5 leagues integration | ☐ |
-| 2026-01 | Automation & dashboard | ☐ |
+| 2025-10-08 | Initial repo setup | ✅ Complete |
+| 2025-10-08 | One-team prototype (Roma) | ✅ Complete |
+| 2025-10-08 | Full Serie A analysis | ✅ Complete |
+| 2025-10-08 | Refactored to modular functions | ✅ Complete |
+| 2025-10 | Web scraper development | ⏳ In progress |
+| 2025-11 | Top 5 leagues integration | ☐ Pending |
+| 2025-12 | Automation & dashboard | ☐ Pending |
 
 ---
 
