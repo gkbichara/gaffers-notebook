@@ -29,20 +29,21 @@ A running list of features, improvements, and checkpoints for the project.
 ---
 
 ## 🕸️ Phase 2.5 — Web Scraping & Automation Setup
-- [ ] Build `scraper.py` to fetch latest CSV files from football-data.co.uk
-- [ ] Create league URL mapping (Serie A, Premier League, La Liga, etc.)
-- [ ] Implement download and update logic for current season data
-- [ ] Add error handling and retry logic
-- [ ] Test weekly update workflow
+- [x] Build `scraper.py` to fetch latest CSV files from football-data.co.uk
+- [x] Create league URL mapping (Serie A, Premier League, La Liga, etc.)
+- [x] Implement download and update logic for current season data
+- [x] Add error handling and retry logic
+- [ ] Test weekly update workflow (automated scheduling)
 - [x] Install web scraping dependencies (requests, beautifulsoup4, selenium)
 
 ---
 
 ## 🌍 Phase 3 — Multi-League Expansion (Top 5 Leagues)
 - [x] Collect Serie A datasets (2024/25–2025/26) ✓
-- [ ] Collect datasets for Premier League, La Liga, Bundesliga, Ligue 1
-- [ ] Apply normalization across leagues (consistent naming)
-- [ ] Run comparison logic for all leagues
+- [x] Collect datasets for Premier League, La Liga, Bundesliga, Ligue 1 ✓
+- [x] Apply normalization across leagues (handled via direct CSV structure)
+- [x] Run comparison logic for all leagues
+- [x] Export CSV results for each league (`data/[League]/results.csv`)
 - [ ] Merge into one global dashboard/table
 - [ ] Add simple filter for league/team in notebooks or Streamlit app
 
@@ -90,8 +91,10 @@ A running list of features, improvements, and checkpoints for the project.
 | 2025-10-08 | One-team prototype (Roma) | ✅ Complete |
 | 2025-10-08 | Full Serie A analysis | ✅ Complete |
 | 2025-10-08 | Refactored to modular functions | ✅ Complete |
-| 2025-10 | Web scraper development | ⏳ In progress |
-| 2025-11 | Top 5 leagues integration | ☐ Pending |
+| 2025-10-10 | Web scraper development | ✅ Complete |
+| 2025-10-10 | Top 5 leagues integration | ✅ Complete |
+| 2025-10-10 | CSV export system | ✅ Complete |
+| 2025-11 | Visualization & plotting | ☐ Pending |
 | 2025-12 | Automation & dashboard | ☐ Pending |
 
 ---
