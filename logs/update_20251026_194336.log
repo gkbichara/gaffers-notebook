@@ -1,0 +1,75 @@
+=====================================================
+Football Performance Comparison - Update Started
+Time: Sun Oct 26 19:43:36 EDT 2025
+Python: /Users/gkb/Desktop/Performance-Comparison/venv/bin/python
+=====================================================
+
+[1/2] Running scraper...
+==================================================
+Football Data Scraper
+==================================================
+
+Serie A:
+Downloading Serie A 2425... ✓ Saved to data/SerieA/2425.csv
+Downloading Serie A 2526... ✓ Saved to data/SerieA/2526.csv
+
+Premier League:
+Downloading Premier League 2425... ✓ Saved to data/PremierLeague/2425.csv
+Downloading Premier League 2526... ✓ Saved to data/PremierLeague/2526.csv
+
+Ligue 1:
+Downloading Ligue 1 2425... ✓ Saved to data/Ligue1/2425.csv
+Downloading Ligue 1 2526... ✓ Saved to data/Ligue1/2526.csv
+
+Bundesliga:
+Downloading Bundesliga 2425... ✓ Saved to data/Bundesliga/2425.csv
+Downloading Bundesliga 2526... ✓ Saved to data/Bundesliga/2526.csv
+
+La Liga:
+Downloading La Liga 2425... ✓ Saved to data/LaLiga/2425.csv
+Downloading La Liga 2526... ✓ Saved to data/LaLiga/2526.csv
+
+==================================================
+Download complete!
+==================================================
+✓ Scraper completed successfully
+
+[2/2] Running analysis...
+============================================================
+FOOTBALL PERFORMANCE COMPARISON - SEASON DIFFERENTIALS
+============================================================
+
+[1/5] Analyzing Serie A...
+✓ Saved results to data/SerieA/results.csv
+   Top: Milan (+6)
+   Bottom: Fiorentina (-10)
+
+[2/5] Analyzing Premier League...
+✓ Saved results to data/PremierLeague/results.csv
+   Top: Arsenal (+9)
+   Bottom: Brighton (-10)
+
+[3/5] Analyzing La Liga...
+✓ Saved results to data/LaLiga/results.csv
+   Top: Villarreal (+7)
+   Bottom: Barcelona (-8)
+
+[4/5] Analyzing Bundesliga...
+✓ Saved results to data/Bundesliga/results.csv
+   Top: Stuttgart (+12)
+   Bottom: M'gladbach (-8)
+
+[5/5] Analyzing Ligue 1...
+✓ Saved results to data/Ligue1/results.csv
+   Top: Lens (+7)
+   Bottom: Nantes (-8)
+
+============================================================
+Analysis complete! Results saved to data/[League]/results.csv
+============================================================
+✓ Analysis completed successfully
+
+=====================================================
+Update Completed Successfully
+Time: Sun Oct 26 19:43:45 EDT 2025
+=====================================================
