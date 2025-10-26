@@ -3,6 +3,10 @@
 # Football Performance Comparison - Automated Update Script
 # Runs scraper and analysis with logging
 
+# Set environment for cron compatibility
+export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+export SHELL="/bin/bash"
+
 # Set project directory
 PROJECT_DIR="/Users/gkb/Desktop/Performance-Comparison"
 cd "$PROJECT_DIR" || exit 1
@@ -13,17 +17,24 @@ mkdir -p logs
 # Log file with timestamp
 LOG_FILE="logs/update_$(date +%Y%m%d_%H%M%S).log"
 
+# Use absolute path to Python in virtual environment
+PYTHON_BIN="$PROJECT_DIR/venv/bin/python"
+
+# Check if virtual environment exists
+if [ ! -f "$PYTHON_BIN" ]; then
+    echo "ERROR: Python virtual environment not found at $PYTHON_BIN" >> "$LOG_FILE"
+    exit 1
+fi
+
 echo "=====================================================" >> "$LOG_FILE"
 echo "Football Performance Comparison - Update Started" >> "$LOG_FILE"
 echo "Time: $(date)" >> "$LOG_FILE"
+echo "Python: $PYTHON_BIN" >> "$LOG_FILE"
 echo "=====================================================" >> "$LOG_FILE"
-
-# Activate virtual environment
-source venv/bin/activate
 
 # Run scraper to fetch latest data
 echo -e "\n[1/2] Running scraper..." >> "$LOG_FILE"
-python scraper.py >> "$LOG_FILE" 2>&1
+"$PYTHON_BIN" scraper.py >> "$LOG_FILE" 2>&1
 
 if [ $? -eq 0 ]; then
     echo "✓ Scraper completed successfully" >> "$LOG_FILE"
@@ -34,7 +45,7 @@ fi
 
 # Run analysis
 echo -e "\n[2/2] Running analysis..." >> "$LOG_FILE"
-python analysis.py >> "$LOG_FILE" 2>&1
+"$PYTHON_BIN" analysis.py >> "$LOG_FILE" 2>&1
 
 if [ $? -eq 0 ]; then
     echo "✓ Analysis completed successfully" >> "$LOG_FILE"
