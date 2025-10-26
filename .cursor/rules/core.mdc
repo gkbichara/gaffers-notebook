@@ -1,0 +1,27 @@
+---
+description: Core project context & global rules for Performance Comparison analytics repo
+globs:
+  - "**/*"
+---
+
+# Project Summary
+- Goal: Compare each team's match results this season vs last season across top 5 European leagues and compute week-by-week differentials (e.g., last year draw → this year win = +2).
+- New teams: Prefer **exclude** newly promoted teams from YoY comparisons to avoid bias. If replacement mapping is explored, keep it behind a feature flag and document the mapping explicitly.
+- Outputs: Per-team weekly diffs, league leaderboards of over/under-performers, plots, and a clear README with instructions.
+
+# General Rules
+- Prefer clarity over cleverness. Small, composable functions; type hints in Python.
+- Deterministic & reproducible: Pin dependencies, seed randomness, write pure transforms for data steps.
+- Configuration never hard-coded (seasons, leagues, paths). Use a single config module or YAML.
+- I/O boundaries: Separate data loading/cleaning from metric computation and plotting.
+- Document invariants & assumptions near the code that uses them.
+
+# Deliverables to Keep Updated
+- README: quickstart, env setup, data sources, how to run end-to-end.
+- TODO.md: next tasks, experiment ideas, debt list.
+- CHANGELOG.md: user-facing changes (if public).
+
+# Helpful Prompts for Cursor Agent
+- “Explain how `compute_weekly_diff` works with a 1-game example.”
+- “Add tests for promoted-team exclusion logic.”
+- “Refactor the plotting script into a small `plots/` module with two functions and no global state.”
