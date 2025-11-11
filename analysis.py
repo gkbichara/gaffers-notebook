@@ -180,7 +180,7 @@ def save_league_results(league_comparison_df, league_folder):
 
 
 # Main execution
-if __name__ == "__main__":
+def main():
     print("=" * 60)
     print("FOOTBALL PERFORMANCE COMPARISON - SEASON DIFFERENTIALS")
     print("=" * 60)
@@ -219,3 +219,6 @@ if __name__ == "__main__":
     print("\n" + "=" * 60)
     print("Analysis complete! Results saved to data/[League]/results.csv")
     print("=" * 60)
+
+    if __name__ == "__main__":
+        main()
