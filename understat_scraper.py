@@ -3,6 +3,8 @@ import json
 import re
 import unicodedata
 import html
+import os
+import pandas as pd
 
 # Base URL for understat.com
 BASE_URL = "https://understat.com/league/"
@@ -88,146 +90,101 @@ def get_team_totals(league_name):
         total_goals = sum(match['scored'] for match in team_info['history'])
         team_totals[team_name] = total_goals
         
-        print(f"{team_name}: {total_goals} goals")
     
     return team_totals
 
 
-def get_player_contribution(league_name, player_name, team_name=None):
-    """Calculate player's contribution to team goals
-    
-    Args:
-        league_name: League key from LEAGUES dict
-        player_name: Player name (accent-insensitive, e.g., 'Soule' matches 'Soulé')
-        team_name: Optional team name for filtering
-    """
-    # Get all players
+def calculate_contributions(league_name):
+    """Calculate contributions for all players in a league"""
+    contributions = []  # Keep this name for the list
     all_players = get_league_players(league_name)
+    team_goals = get_team_totals(league_name)  # This is a dict
     
-    # Normalize search name
-    search_name = normalize_name(player_name)
-    
-    # Find our player (flexible matching)
-    player = None
-    for p in all_players:
-        name_match = normalize_name(p['player_name']) == search_name
-        team_match = team_name is None or p['team_title'] == team_name
+    for player in all_players:
+        player_team = player['team_title']
         
-        if name_match and team_match:
-            player = p
-            break
-    
-    if not player:
-        print(f"Player not found: {player_name}")
-        if team_name:
-            print(f"  (searching in team: {team_name})")
-        return None
-    
-    # Calculate team total goals (use player's actual team)
-    player_team = player['team_title']
-    team_goals = sum(int(p['goals']) for p in all_players if p['team_title'] == player_team)
-    
-    # Player stats
-    goals = int(player['goals'])
-    assists = int(player['assists'])
-    contributions = goals + assists
-    contribution_pct = (contributions / team_goals * 100) if team_goals > 0 else 0
-    
-    return {
-        'player': player['player_name'],  # Use actual name from data
-        'team': player_team,
-        'goals': goals,
-        'assists': assists,
-        'contributions': contributions,
-        'team_total': team_goals,
-        'contribution_pct': round(contribution_pct, 2)
-    }
-
-def get_all_player_contributions(league_name, team_name=None):
-    """Get contribution stats for all players in a league or team
-    
-    Args:
-        league_name: League key from LEAGUES dict
-        team_name: Optional team name to filter by
-    
-    Returns:
-        List of player contribution dictionaries, sorted by contribution %
-    """
-    all_players = get_league_players(league_name)
-    
-    # Calculate team totals once (excluding multi-team players)
-    team_totals = {}
-    for p in all_players:
-        team = p['team_title']
-        # Skip players who played for multiple teams (can't attribute goals properly)
-        if ',' in team:
-            continue
-        if team not in team_totals:
-            team_totals[team] = 0
-        team_totals[team] += int(p['goals'])
-    
-    # Build contribution list
-    contributions = []
-    multi_team_players = []
-    
-    for p in all_players:
-        team = p['team_title']
-        
-        # Track players who played for multiple teams
-        if ',' in team:
-            multi_team_players.append(p['player_name'])
+        # Skip multi-team players
+        if ',' in player_team:
             continue
         
-        # Filter by team if specified
-        if team_name and team != team_name:
-            continue
+        # Get this team's total (keep dict intact)
+        team_total = team_goals.get(player_team, 0)
         
-        goals = int(p['goals'])
-        assists = int(p['assists'])
-        total_contrib = goals + assists
-        team_total = team_totals[team]
-        contrib_pct = (total_contrib / team_total * 100) if team_total > 0 else 0
+        # Player stats
+        goals = int(player['goals'])
+        assists = int(player['assists'])
+        total_contribs = goals + assists  # Different name!
+        
+        # Calculate percentages using team_total
+        contribution_pct = (total_contribs / team_total * 100) if team_total > 0 else 0
+        goals_pct = (goals / team_total * 100) if team_total > 0 else 0
+        assists_pct = (assists / team_total * 100) if team_total > 0 else 0
         
         contributions.append({
-            'player': p['player_name'],
-            'team': team,
+            'player': player['player_name'],  # Fix: was p
+            'team': player_team,
             'goals': goals,
             'assists': assists,
-            'contributions': total_contrib,
-            'team_total': team_total,
-            'contribution_pct': round(contrib_pct, 2),
-            'games': int(p['games'])
+            'contributions': total_contribs,  # Fix: use the variable
+            'contribution_pct': round(contribution_pct, 1),  # 1 decimal
+            'goals_pct': round(goals_pct, 1),
+            'assists_pct': round(assists_pct, 1),
+            'games': int(player['games'])  # Fix: was p
         })
     
-    # Print info about excluded players
-    if multi_team_players:
-        print(f"Note: {len(multi_team_players)} player(s) excluded due to mid-season transfers")
-    
-    # Sort by contribution percentage (highest first)
     contributions.sort(key=lambda x: x['contribution_pct'], reverse=True)
-    
     return contributions
 
+
+def print_table(contributions, top_n=20):
+    """Print formatted table of top contributors"""
+    
+    # Slice to top N
+    top_players = contributions[:top_n]
+    
+    # Print header
+    print("\n" + "="*100)
+    print(f"TOP {top_n} CONTRIBUTORS - SERIE A (2025-26)")
+    print("="*100)
+    print(f"{'Rank':<6} {'Player':<25} {'Team':<18} {'G':<5} {'A':<5} {'Total':<7} {'G%':<8} {'A%':<8} {'Cont%':<8}")
+    print("-"*100)
+    
+    # Print data rows
+    for i, p in enumerate(top_players, 1):
+        print(f"{i:<6} {p['player']:<25} {p['team']:<18} {p['goals']:<5} {p['assists']:<5} {p['contributions']:<7} {p['goals_pct']:<8.1f} {p['assists_pct']:<8.1f} {p['contribution_pct']:<8.1f}")
+    
+    print("="*100)
+
+def save_player_results(contributions, league_name):
+    """Save player contributions to CSV
+    
+    Args:
+        contributions: List of player contribution dicts
+        league_name: League key (e.g., 'serieA', 'PremierLeague')
+    """
+    # Create file path using league_name as folder
+    league_folder = f'data/{league_name}'
+    file_path = f'{league_folder}/player_results.csv'
+    
+    # Ensure directory exists (shouldn't be needed, but safe)
+    os.makedirs(league_folder, exist_ok=True)
+    
+    # Convert to DataFrame
+    df = pd.DataFrame(contributions)
+    
+    # Save to CSV
+    df.to_csv(file_path, index=False)
+    
+    print(f"   ✓ Saved player results to {file_path}")
+
+
 # Test
+def main():
+    for league_name in LEAGUES:
+        players_contributions = calculate_contributions(league_name)    
+        print_table(players_contributions, top_n=20)
+        save_player_results(players_contributions, league_name)
+
+        
 if __name__ == "__main__":
-    # Get ALL Serie A players sorted by contribution
-    """
-    print("\nGetting ALL La Liga players...")
-    all_players = get_all_player_contributions('LaLiga')
-    
-    print("\n" + "="*70)
-    print("TOP 20 CONTRIBUTORS IN LA LIGA (2025-26)")
-    print("="*70)
-    print(f"{'Rank':<6} {'Player':<25} {'Team':<15} {'G':<4} {'A':<4} {'Total':<7} {'%':<7}")
-    print("-"*70)
-    
-    for i, p in enumerate(all_players[:20], 1):
-        print(f"{i:<6} {p['player']:<25} {p['team']:<15} {p['goals']:<4} {p['assists']:<4} {p['contributions']:<7} {p['contribution_pct']:.1f}%")
-    """
-    # Test: Get actual team totals from Understat
-    print("\nTesting: Getting team totals from match history...")
-    team_totals = get_team_totals('LaLiga')
-    
-    print("\n" + "="*50)
-    print("This is the REAL data from Understat!")
-    print("="*50)
+    main()
