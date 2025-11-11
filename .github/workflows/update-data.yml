@@ -32,19 +32,11 @@ jobs:
       - name: Create logs directory
         run: mkdir -p logs
       
-      - name: Run scraper
-        id: scraper
+      - name: Run full pipeline
+        id: pipeline
         run: |
-          echo "Running scraper at $(date)"
-          python scraper.py 2>&1 | tee logs/scraper_run.log
-          echo "exit_code=$?" >> $GITHUB_OUTPUT
-      
-      - name: Run analysis
-        if: steps.scraper.outcome == 'success'
-        id: analysis
-        run: |
-          echo "Running analysis at $(date)"
-          python analysis.py 2>&1 | tee logs/analysis_run.log
+          echo "Running full data pipeline at $(date)"
+          python main.py 2>&1 | tee logs/pipeline_run.log
           echo "exit_code=$?" >> $GITHUB_OUTPUT
       
       - name: Check for changes
@@ -76,6 +68,5 @@ jobs:
         if: failure()
         run: |
           echo "❌ Workflow failed! Check the logs for details."
-          echo "Scraper exit code: ${{ steps.scraper.outputs.exit_code }}"
-          echo "Analysis exit code: ${{ steps.analysis.outputs.exit_code }}"
+          echo "Pipeline exit code: ${{ steps.pipeline.outputs.exit_code }}"
 
