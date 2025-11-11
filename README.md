@@ -55,8 +55,12 @@ Fixtures involving newly promoted or relegated teams are **excluded** to avoid b
 Performance-Comparison/
 ├── analysis.py              # Main analysis script
 ├── scraper.py              # Data fetching from football-data.co.uk
-├── run_update.sh           # Automated update script (cron job)
+├── understat_scraper.py    # Alternative scraper for Understat data
+├── run_update.sh           # Automated update script (local cron)
 ├── requirements.txt        # Python dependencies
+├── .github/
+│   └── workflows/
+│       └── update-data.yml # GitHub Actions automation
 ├── data/
 │   ├── SerieA/
 │   │   ├── 2425.csv       # Historical season data
@@ -171,20 +175,51 @@ roma = df[df['Team'] == 'Roma']
 print(roma[['Match_Number', 'Opponent', 'Differential', 'Cumulative']])
 ```
 
-### 5. Automation (Optional)
+### 5. Automation
 
-The project includes automated updates via cron job:
+The project supports automated updates via **GitHub Actions** (recommended) or local cron jobs.
+
+#### 🤖 GitHub Actions (Recommended)
+
+The project includes a GitHub Actions workflow that runs automatically on GitHub's servers:
+
+**How it works:**
+- ✅ Runs daily at 3 AM UTC (configurable)
+- ✅ Automatically fetches latest data
+- ✅ Runs analysis on all leagues
+- ✅ Commits updated data to the repository
+- ✅ Uploads logs as downloadable artifacts
+- ✅ Works even when your computer is off!
+
+**Manual Trigger:**
+1. Go to your GitHub repo → **Actions** tab
+2. Select "Update Football Data"
+3. Click "Run workflow"
+
+**View Results:**
+- Updated data appears in `data/[League]/` folders
+- Download logs from the Actions run page
+- Check commit history for automated updates
+
+**Customize Schedule:**
+
+Edit `.github/workflows/update-data.yml`:
+```yaml
+schedule:
+  - cron: '0 3 * * *'  # Daily at 3 AM UTC
+  # or
+  - cron: '0 9 * * 1,4'  # Mon & Thu at 9 AM UTC
+```
+
+#### 🖥️ Local Automation (Alternative)
+
+For local automation, use the included cron job setup:
 
 ```bash
-# View current schedule
-crontab -l
-
-# Edit schedule
+# Edit crontab
 crontab -e
-```
 
-**Default Schedule:** Twice weekly (Monday & Thursday at 9 AM)
-```
+# Add schedule (example: Mon & Thu at 9 AM)
 0 9 * * 1,4 /Users/gkb/Desktop/Performance-Comparison/run_update.sh
 ```
 
@@ -228,7 +263,8 @@ The `run_update.sh` script:
 ✅ **Match-by-Match Tracking** - See progression through the season  
 ✅ **Fair Comparisons** - Same opponent, same venue only  
 ✅ **Automated Data Fetching** - Built-in scraper for football-data.co.uk  
-✅ **Scheduled Updates** - Cron job runs twice weekly (Mon & Thu 9 AM)  
+✅ **GitHub Actions Automation** - Daily updates run automatically on GitHub servers  
+✅ **Manual & Scheduled Updates** - Run on-demand or via automated schedule  
 ✅ **Comprehensive Logging** - All executions tracked with timestamps  
 ✅ **CSV Exports** - Easy to analyze in Excel, pandas, or other tools  
 ✅ **Promoted Team Handling** - Automatically excludes teams without comparison data
@@ -240,9 +276,9 @@ The `run_update.sh` script:
 - 📊 Visualization dashboard with line plots and bar charts
 - 🌐 Interactive web interface with team/league filters
 - 📈 Additional metrics (goal differential, xG comparison)
-- ☁️ Cloud deployment via GitHub Actions
 - 📱 Mobile-friendly dashboard
 - 🐦 Automated Twitter/X posts with weekly summaries
+- 📧 Email notifications for significant changes
 
 ---
 
