@@ -1,44 +1,33 @@
 import requests
 import os
-
-# Base URL for football-data.co.uk
-BASE_URL = "https://www.football-data.co.uk/mmz4281"
-
-# League configuration: {Display Name: (Code, Folder Name)}
-LEAGUES = {
-    'Serie A': ('I1', 'SerieA'),
-    'Premier League': ('E0', 'PremierLeague'),
-    'Ligue 1': ('F1', 'Ligue1'),
-    'Bundesliga': ('D1', 'Bundesliga'),
-    'La Liga': ('SP1', 'LaLiga')
-}
-
-# Seasons to download
-SEASONS = ['2425', '2526']
+from config import LEAGUES, LEAGUE_KEYS, SEASONS, FBDATA_BASE_URL, DATA_DIR
 
 
-def download_league_data(league_name, league_code, folder_name, season):
+def download_league_data(league_key, season):
     """
     Download CSV data for a specific league and season.
     
     Args:
-        league_name: Display name of the league (e.g., 'Serie A')
-        league_code: Football-data.co.uk code (e.g., 'I1')
-        folder_name: Folder name for saving (e.g., 'SerieA')
+        league_key: League key from config (e.g., 'serie_a')
         season: Season code (e.g., '2526')
     """
-    # Construct URL
-    url = f"{BASE_URL}/{season}/{league_code}.csv"
+    league_info = LEAGUES[league_key]
+    display_name = league_info['display_name']
+    fbdata_code = league_info['fbdata_code']
+    folder_name = league_info['folder']
     
-    # Create directory structure: data/leagueName/
-    league_dir = os.path.join('data', folder_name)
+    # Construct URL
+    url = f"{FBDATA_BASE_URL}/{season}/{fbdata_code}.csv"
+    
+    # Create directory structure: data/league_folder/
+    league_dir = os.path.join(DATA_DIR, folder_name)
     os.makedirs(league_dir, exist_ok=True)
     
-    # File path: data/leagueName/season.csv
+    # File path: data/league_folder/season.csv
     file_path = os.path.join(league_dir, f"{season}.csv")
     
     try:
-        print(f"Downloading {league_name} {season}... ", end="")
+        print(f"Downloading {display_name} {season}... ", end="")
         response = requests.get(url, timeout=10)
         response.raise_for_status()  # Raise error for bad status codes
         
@@ -47,9 +36,11 @@ def download_league_data(league_name, league_code, folder_name, season):
             f.write(response.text)
         
         print(f"✓ Saved to {file_path}")
+        return True
         
     except requests.exceptions.RequestException as e:
         print(f"✗ Failed: {e}")
+        return False
 
 
 def main():
@@ -58,14 +49,21 @@ def main():
     print("Football Data Scraper")
     print("=" * 50)
     
-    for league_name, (league_code, folder_name) in LEAGUES.items():
-        print(f"\n{league_name}:")
+    total_downloads = len(LEAGUE_KEYS) * len(SEASONS)
+    successful = 0
+    
+    for league_key in LEAGUE_KEYS:
+        display_name = LEAGUES[league_key]['display_name']
+        print(f"\n{display_name}:")
         for season in SEASONS:
-            download_league_data(league_name, league_code, folder_name, season)
+            if download_league_data(league_key, season):
+                successful += 1
     
     print("\n" + "=" * 50)
-    print("Download complete!")
+    print(f"Download complete! {successful}/{total_downloads} files downloaded")
     print("=" * 50)
+    
+    return successful == total_downloads
 
 
 if __name__ == "__main__":

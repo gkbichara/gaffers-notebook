@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import os
+from config import LEAGUES, LEAGUE_KEYS, DATA_DIR
 
 
 def calculate_points_home(df):
@@ -164,10 +166,8 @@ def save_league_results(league_comparison_df, league_folder):
     
     Args:
         league_comparison_df: DataFrame from analyze_league()
-        league_folder: Path to league folder (e.g., 'data/SerieA')
+        league_folder: Path to league folder (e.g., 'data/serie_a')
     """
-    import os
-    
     output_path = os.path.join(league_folder, 'results.csv')
     
     # Select and order columns nicely
@@ -179,23 +179,19 @@ def save_league_results(league_comparison_df, league_folder):
     print(f"✓ Saved results to {output_path}")
 
 
-# Main execution
 def main():
+    """Main execution function."""
     print("=" * 60)
     print("FOOTBALL PERFORMANCE COMPARISON - SEASON DIFFERENTIALS")
     print("=" * 60)
     
-    # Define leagues to analyze
-    leagues = [
-        ('Serie A', 'data/SerieA'),
-        ('Premier League', 'data/PremierLeague'),
-        ('La Liga', 'data/LaLiga'),
-        ('Bundesliga', 'data/Bundesliga'),
-        ('Ligue 1', 'data/Ligue1')
-    ]
-    
-    for idx, (league_name, league_path) in enumerate(leagues, 1):
-        print(f"\n[{idx}/{len(leagues)}] Analyzing {league_name}...")
+    for idx, league_key in enumerate(LEAGUE_KEYS, 1):
+        league_info = LEAGUES[league_key]
+        display_name = league_info['display_name']
+        folder = league_info['folder']
+        league_path = os.path.join(DATA_DIR, folder)
+        
+        print(f"\n[{idx}/{len(LEAGUE_KEYS)}] Analyzing {display_name}...")
         
         try:
             # Load data
@@ -220,5 +216,6 @@ def main():
     print("Analysis complete! Results saved to data/[League]/results.csv")
     print("=" * 60)
 
-    if __name__ == "__main__":
-        main()
+
+if __name__ == "__main__":
+    main()

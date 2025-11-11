@@ -5,18 +5,7 @@ import unicodedata
 import html
 import os
 import pandas as pd
-
-# Base URL for understat.com
-BASE_URL = "https://understat.com/league/"
-
-# Leagues to scrape
-LEAGUES = {
-    'serieA': 'Serie_A',
-    'PremierLeague': 'EPL',
-    'LaLiga': 'La_Liga',
-    'Bundesliga': 'Bundesliga',
-    'ligue1': 'Ligue_1'
-}
+from config import LEAGUES, LEAGUE_KEYS, UNDERSTAT_BASE_URL, DATA_DIR
 
 def normalize_name(name):
     """Remove accents and convert to lowercase for matching"""
@@ -25,11 +14,17 @@ def normalize_name(name):
     without_accents = ''.join(char for char in nfd if unicodedata.category(char) != 'Mn')
     return without_accents.lower().strip()
 
-def get_league_players(league_name):
-    """Get all players from a league"""
-    url = BASE_URL + LEAGUES[league_name]
+def get_league_players(league_key):
+    """Get all players from a league
     
-    print(f"Fetching {league_name} data...")
+    Args:
+        league_key: League key from config (e.g., 'serie_a')
+    """
+    understat_key = LEAGUES[league_key]['understat_key']
+    url = UNDERSTAT_BASE_URL + understat_key
+    
+    display_name = LEAGUES[league_key]['display_name']
+    print(f"Fetching {display_name} data...")
     response = requests.get(url)
     
     # Find the JavaScript variable with player data
@@ -52,12 +47,17 @@ def get_league_players(league_name):
     return players
 
 
-def get_team_data(league_name):
-    """Get team-level data (total goals, etc.) from Understat"""
-    url = BASE_URL + LEAGUES[league_name]
+def get_team_data(league_key):
+    """Get team-level data (total goals, etc.) from Understat
+    
+    Args:
+        league_key: League key from config (e.g., 'serie_a')
+    """
+    understat_key = LEAGUES[league_key]['understat_key']
+    url = UNDERSTAT_BASE_URL + understat_key
     response = requests.get(url)
 
-        # Find the JavaScript variable with player data
+    # Find the JavaScript variable with team data
     match = re.search(r"var teamsData\s*=\s*JSON\.parse\('(.+?)'\)", response.text)
 
     # Decode hex-encoded string and parse JSON
@@ -74,13 +74,16 @@ def get_team_data(league_name):
     return teams
 
 
-def get_team_totals(league_name):
+def get_team_totals(league_key):
     """Calculate total goals scored by each team from match history
+    
+    Args:
+        league_key: League key from config (e.g., 'serie_a')
     
     Returns:
         dict: {'Team Name': total_goals_scored, ...}
     """
-    teams_data = get_team_data(league_name)
+    teams_data = get_team_data(league_key)
     
     team_totals = {}
     for team_id, team_info in teams_data.items():
@@ -94,11 +97,18 @@ def get_team_totals(league_name):
     return team_totals
 
 
-def calculate_contributions(league_name):
-    """Calculate contributions for all players in a league"""
-    contributions = []  # Keep this name for the list
-    all_players = get_league_players(league_name)
-    team_goals = get_team_totals(league_name)  # This is a dict
+def calculate_contributions(league_key):
+    """Calculate contributions for all players in a league
+    
+    Args:
+        league_key: League key from config (e.g., 'serie_a')
+    
+    Returns:
+        List of dicts with player contribution data
+    """
+    contributions = []
+    all_players = get_league_players(league_key)
+    team_goals = get_team_totals(league_key)
     
     for player in all_players:
         player_team = player['team_title']
@@ -113,7 +123,7 @@ def calculate_contributions(league_name):
         # Player stats
         goals = int(player['goals'])
         assists = int(player['assists'])
-        total_contribs = goals + assists  # Different name!
+        total_contribs = goals + assists  
         
         # Calculate percentages using team_total
         contribution_pct = (total_contribs / team_total * 100) if team_total > 0 else 0
@@ -121,30 +131,36 @@ def calculate_contributions(league_name):
         assists_pct = (assists / team_total * 100) if team_total > 0 else 0
         
         contributions.append({
-            'player': player['player_name'],  # Fix: was p
+            'player': player['player_name'],
             'team': player_team,
             'goals': goals,
             'assists': assists,
-            'contributions': total_contribs,  # Fix: use the variable
-            'contribution_pct': round(contribution_pct, 1),  # 1 decimal
+            'contributions': total_contribs,
+            'contribution_pct': round(contribution_pct, 1),
             'goals_pct': round(goals_pct, 1),
             'assists_pct': round(assists_pct, 1),
-            'games': int(player['games'])  # Fix: was p
+            'games': int(player['games'])
         })
     
     contributions.sort(key=lambda x: x['contribution_pct'], reverse=True)
     return contributions
 
 
-def print_table(contributions, top_n=20):
-    """Print formatted table of top contributors"""
+def print_table(contributions, league_key, top_n=20):
+    """Print formatted table of top contributors
     
+    Args:
+        contributions: List of player contribution dicts
+        league_key: League key from config (e.g., 'serie_a')
+        top_n: Number of top players to display
+    """
     # Slice to top N
     top_players = contributions[:top_n]
     
     # Print header
+    display_name = LEAGUES[league_key]['display_name']
     print("\n" + "="*100)
-    print(f"TOP {top_n} CONTRIBUTORS - SERIE A (2025-26)")
+    print(f"TOP {top_n} CONTRIBUTORS - {display_name.upper()} (2025-26)")
     print("="*100)
     print(f"{'Rank':<6} {'Player':<25} {'Team':<18} {'G':<5} {'A':<5} {'Total':<7} {'G%':<8} {'A%':<8} {'Cont%':<8}")
     print("-"*100)
@@ -155,16 +171,17 @@ def print_table(contributions, top_n=20):
     
     print("="*100)
 
-def save_player_results(contributions, league_name):
+def save_player_results(contributions, league_key):
     """Save player contributions to CSV
     
     Args:
         contributions: List of player contribution dicts
-        league_name: League key (e.g., 'serieA', 'PremierLeague')
+        league_key: League key from config (e.g., 'serie_a')
     """
-    # Create file path using league_name as folder
-    league_folder = f'data/{league_name}'
-    file_path = f'{league_folder}/player_results.csv'
+    # Create file path using league folder
+    folder = LEAGUES[league_key]['folder']
+    league_folder = os.path.join(DATA_DIR, folder)
+    file_path = os.path.join(league_folder, 'player_results.csv')
     
     # Ensure directory exists (shouldn't be needed, but safe)
     os.makedirs(league_folder, exist_ok=True)
@@ -178,12 +195,23 @@ def save_player_results(contributions, league_name):
     print(f"   ✓ Saved player results to {file_path}")
 
 
-# Test
 def main():
-    for league_name in LEAGUES:
-        players_contributions = calculate_contributions(league_name)    
-        print_table(players_contributions, top_n=20)
-        save_player_results(players_contributions, league_name)
+    """Run player contribution analysis for all leagues."""
+    print("\n" + "="*60)
+    print("UNDERSTAT PLAYER CONTRIBUTION ANALYSIS")
+    print("="*60)
+    
+    for league_key in LEAGUE_KEYS:
+        display_name = LEAGUES[league_key]['display_name']
+        print(f"\n[Processing {display_name}...]")
+        
+        try:
+            players_contributions = calculate_contributions(league_key)
+            save_player_results(players_contributions, league_key)
+            print(f"   ✓ {len(players_contributions)} players processed")
+        except Exception as e:
+            print(f"   ✗ Failed: {e}")
+    
 
         
 if __name__ == "__main__":
