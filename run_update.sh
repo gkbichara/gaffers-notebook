@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Football Performance Comparison - Automated Update Script
-# Runs scraper and analysis with logging
+# Runs the full data pipeline via main.py
 
 # Set environment for cron compatibility
 export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
@@ -26,42 +26,35 @@ if [ ! -f "$PYTHON_BIN" ]; then
     exit 1
 fi
 
-echo "=====================================================" >> "$LOG_FILE"
-echo "Football Performance Comparison - Update Started" >> "$LOG_FILE"
-echo "Time: $(date)" >> "$LOG_FILE"
-echo "Python: $PYTHON_BIN" >> "$LOG_FILE"
-echo "=====================================================" >> "$LOG_FILE"
+# Redirect all output to log file
+{
+    echo "====================================================="
+    echo "Football Performance Comparison - Auto Update"
+    echo "Time: $(date)"
+    echo "Python: $PYTHON_BIN"
+    echo "====================================================="
 
-# Run scraper to fetch latest data
-echo -e "\n[1/2] Running scraper..." >> "$LOG_FILE"
-"$PYTHON_BIN" scraper.py >> "$LOG_FILE" 2>&1
+    # Run the main orchestrator
+    "$PYTHON_BIN" main.py
 
-if [ $? -eq 0 ]; then
-    echo "✓ Scraper completed successfully" >> "$LOG_FILE"
-else
-    echo "✗ Scraper failed" >> "$LOG_FILE"
-    exit 1
-fi
+    if [ $? -eq 0 ]; then
+        echo "✓ Pipeline executed successfully"
+    else
+        echo "✗ Pipeline encountered errors"
+        # We don't exit here because main.py handles its own errors mostly,
+        # but if it crashes entirely, we want to know.
+    fi
 
-# Run analysis
-echo -e "\n[2/2] Running analysis..." >> "$LOG_FILE"
-"$PYTHON_BIN" analysis.py >> "$LOG_FILE" 2>&1
+    echo ""
+    echo "====================================================="
+    echo "Update Process Finished"
+    echo "Time: $(date)"
+    echo "====================================================="
 
-if [ $? -eq 0 ]; then
-    echo "✓ Analysis completed successfully" >> "$LOG_FILE"
-else
-    echo "✗ Analysis failed" >> "$LOG_FILE"
-    exit 1
-fi
-
-echo -e "\n=====================================================" >> "$LOG_FILE"
-echo "Update Completed Successfully" >> "$LOG_FILE"
-echo "Time: $(date)" >> "$LOG_FILE"
-echo "=====================================================" >> "$LOG_FILE"
+} >> "$LOG_FILE" 2>&1
 
 # Keep only last 10 log files
 cd logs
 ls -t update_*.log | tail -n +11 | xargs rm -f 2>/dev/null
 
 exit 0
-
