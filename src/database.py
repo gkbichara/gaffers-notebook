@@ -88,6 +88,7 @@ def update_team_stats(league_key, season, results_df):
             "date": str(row['Date'].date()) if pd.notna(row['Date']) else None,
             "opponent": row['Opponent'],
             "venue": row['Venue'],
+            "result": row['Result'],
             "goals_for": int(row['FTHG']) if row['Venue'] == 'H' else int(row['FTAG']),
             "goals_against": int(row['FTAG']) if row['Venue'] == 'H' else int(row['FTHG']),
             "points_current": int(row['Points_cur']),

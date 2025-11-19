@@ -99,6 +99,23 @@ def compare_seasons(cur_season_df, prev_season_df, team_name):
     # Add match number for this team (1, 2, 3...)
     all_comparisons['Match_Number'] = range(1, len(all_comparisons) + 1)
     
+    # Determine match result (W/D/L) for current season
+    def determine_result(row):
+        if row['Venue'] == 'H':
+            if row['FTHG'] > row['FTAG']:
+                return 'W'
+            if row['FTHG'] == row['FTAG']:
+                return 'D'
+            return 'L'
+        else:
+            if row['FTAG'] > row['FTHG']:
+                return 'W'
+            if row['FTAG'] == row['FTHG']:
+                return 'D'
+            return 'L'
+
+    all_comparisons['Result'] = all_comparisons.apply(determine_result, axis=1)
+
     # Calculate differential
     all_comparisons['Differential'] = all_comparisons['Points_cur'] - all_comparisons['Points_prev']
     
@@ -171,8 +188,8 @@ def save_league_results(league_comparison_df, league_folder):
     output_path = os.path.join(league_folder, 'results.csv')
     
     # Select and order columns nicely
-    columns = ['Team', 'Match_Number', 'Date', 'Opponent', 'Venue', 'FTHG', 'FTAG', 
-               'Points_cur', 'Points_prev', 'Differential', 'Cumulative']
+    columns = ['Team', 'Match_Number', 'Date', 'Opponent', 'Venue', 'Result',
+               'FTHG', 'FTAG', 'Points_cur', 'Points_prev', 'Differential', 'Cumulative']
     
     # Save to CSV
     league_comparison_df[columns].to_csv(output_path, index=False)
