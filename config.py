@@ -9,8 +9,8 @@ LEAGUES = {
     'serie_a': {
         'display_name': 'Serie A',
         'folder': 'serie_a',
-        'fbdata_code': 'I1',           # football-data.co.uk code
-        'understat_key': 'Serie_A'     # Understat API key
+        'fbdata_code': 'I1',
+        'understat_key': 'Serie_A'
     },
     'premier_league': {
         'display_name': 'Premier League',
@@ -43,6 +43,15 @@ LEAGUE_KEYS = ['serie_a', 'premier_league', 'la_liga', 'bundesliga', 'ligue_1']
 
 # Season codes
 SEASONS = ['2425', '2526']
+PREVIOUS_SEASON = SEASONS[0]
+CURRENT_SEASON = SEASONS[-1]
+
+# Mapping between internal season codes and Understat season identifiers
+# Understat uses the starting calendar year of the season (e.g., 2024 for 2024/25)
+UNDERSTAT_SEASON_MAP = {
+    '2425': '2024',
+    '2526': '2025',
+}
 
 # Base paths
 DATA_DIR = 'data'
