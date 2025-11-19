@@ -191,14 +191,35 @@ pip install -r requirements.txt
 
 ### 1.5 Configure Environment Variables
 
-Create a `.env` file (not tracked by git) with your Supabase credentials:
+Create a `.env` file in the project root (it’s already ignored by git) with your Supabase credentials:
 
 ```
+# .env
 SUPABASE_URL=your_project_url
-SUPABASE_KEY=your_service_role_key
+SUPABASE_KEY=your_service_role_key   # use the service-role secret
 ```
 
-GitHub Actions also needs these values. Add `SUPABASE_URL` and `SUPABASE_KEY` as repository secrets under **Settings → Secrets and variables → Actions**.
+> ⚠️ Never commit this file. The service-role key has full privileges.
+
+Then mirror the same values in GitHub so the nightly workflow can reach Supabase:
+1. GitHub repo → **Settings → Secrets and variables → Actions**
+2. Add secrets named `SUPABASE_URL` and `SUPABASE_KEY`
+3. Re-run the “Update Football Data” workflow once to confirm the secrets work
+
+### 1.6 Handy Make commands
+
+Common developer tasks are wrapped in a Makefile:
+
+```bash
+make setup    # upgrade pip + install requirements
+make run      # python -m src.main
+make scrape   # python -m src.scraper
+make analyze  # python -m src.analysis
+make lint     # ruff check src
+make format   # black src
+```
+
+Feel free to call the underlying `python -m ...` commands directly if you prefer.
 
 ### 2. Run Full Pipeline (Recommended)
 

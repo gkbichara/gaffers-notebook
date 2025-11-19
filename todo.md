@@ -14,8 +14,8 @@ A living plan for the data platform. Use this to track what’s done, what’s i
 ---
 
 ## 🚧 Active Focus
-- [ ] Add Makefile targets (`run`, `scrape`, `lint`, `format`)
-- [ ] Document `.env` creation + Supabase secret setup in README / onboarding notes
+- [x] Add Makefile targets (`run`, `scrape`, `lint`, `format`)
+- [x] Document `.env` creation + Supabase secret setup in README / onboarding notes
 - [x] Refresh README with new branding + structure
 
 ---
