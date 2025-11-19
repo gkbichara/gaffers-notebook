@@ -5,7 +5,15 @@ import unicodedata
 import html
 import os
 import pandas as pd
-from config import LEAGUES, LEAGUE_KEYS, UNDERSTAT_BASE_URL, DATA_DIR
+
+from config import (
+    LEAGUES,
+    LEAGUE_KEYS,
+    UNDERSTAT_BASE_URL,
+    DATA_DIR,
+    SEASONS,
+    UNDERSTAT_SEASON_MAP,
+)
 
 def normalize_name(name):
     """Remove accents and convert to lowercase for matching"""
@@ -14,17 +22,20 @@ def normalize_name(name):
     without_accents = ''.join(char for char in nfd if unicodedata.category(char) != 'Mn')
     return without_accents.lower().strip()
 
-def get_league_players(league_key):
-    """Get all players from a league
-    
-    Args:
-        league_key: League key from config (e.g., 'serie_a')
-    """
+def _build_understat_url(league_key, season_code):
     understat_key = LEAGUES[league_key]['understat_key']
-    url = UNDERSTAT_BASE_URL + understat_key
+    season_suffix = UNDERSTAT_SEASON_MAP.get(season_code)
+    if season_suffix:
+        return f"{UNDERSTAT_BASE_URL}{understat_key}/{season_suffix}"
+    return UNDERSTAT_BASE_URL + understat_key
+
+
+def get_league_players(league_key, season_code):
+    """Get all players from a league/season"""
+    url = _build_understat_url(league_key, season_code)
     
     display_name = LEAGUES[league_key]['display_name']
-    print(f"Fetching {display_name} data...")
+    print(f"Fetching {display_name} data (season {season_code})...")
     response = requests.get(url)
     
     # Find the JavaScript variable with player data
@@ -47,14 +58,9 @@ def get_league_players(league_key):
     return players
 
 
-def get_team_data(league_key):
-    """Get team-level data (total goals, etc.) from Understat
-    
-    Args:
-        league_key: League key from config (e.g., 'serie_a')
-    """
-    understat_key = LEAGUES[league_key]['understat_key']
-    url = UNDERSTAT_BASE_URL + understat_key
+def get_team_data(league_key, season_code):
+    """Get team-level data (total goals, etc.) from Understat"""
+    url = _build_understat_url(league_key, season_code)
     response = requests.get(url)
 
     # Find the JavaScript variable with team data
@@ -74,7 +80,7 @@ def get_team_data(league_key):
     return teams
 
 
-def get_team_totals(league_key):
+def get_team_totals(league_key, season_code):
     """Calculate total goals scored by each team from match history
     
     Args:
@@ -83,7 +89,7 @@ def get_team_totals(league_key):
     Returns:
         dict: {'Team Name': total_goals_scored, ...}
     """
-    teams_data = get_team_data(league_key)
+    teams_data = get_team_data(league_key, season_code)
     
     team_totals = {}
     for team_id, team_info in teams_data.items():
@@ -97,7 +103,7 @@ def get_team_totals(league_key):
     return team_totals
 
 
-def calculate_contributions(league_key):
+def calculate_contributions(league_key, season_code):
     """Calculate contributions for all players in a league
     
     Args:
@@ -107,8 +113,8 @@ def calculate_contributions(league_key):
         List of dicts with player contribution data
     """
     contributions = []
-    all_players = get_league_players(league_key)
-    team_goals = get_team_totals(league_key)
+    all_players = get_league_players(league_key, season_code)
+    team_goals = get_team_totals(league_key, season_code)
     
     for player in all_players:
         player_team = player['team_title']
@@ -139,14 +145,15 @@ def calculate_contributions(league_key):
             'contribution_pct': round(contribution_pct, 1),
             'goals_pct': round(goals_pct, 1),
             'assists_pct': round(assists_pct, 1),
-            'games': int(player['games'])
+            'games': int(player['games']),
+            'season': season_code,
         })
     
     contributions.sort(key=lambda x: x['contribution_pct'], reverse=True)
     return contributions
 
 
-def print_table(contributions, league_key, top_n=20):
+def print_table(contributions, league_key, season_code, top_n=20):
     """Print formatted table of top contributors
     
     Args:
@@ -160,7 +167,7 @@ def print_table(contributions, league_key, top_n=20):
     # Print header
     display_name = LEAGUES[league_key]['display_name']
     print("\n" + "="*100)
-    print(f"TOP {top_n} CONTRIBUTORS - {display_name.upper()} (2025-26)")
+    print(f"TOP {top_n} CONTRIBUTORS - {display_name.upper()} ({season_code})")
     print("="*100)
     print(f"{'Rank':<6} {'Player':<25} {'Team':<18} {'G':<5} {'A':<5} {'Total':<7} {'G%':<8} {'A%':<8} {'Cont%':<8}")
     print("-"*100)
@@ -171,7 +178,7 @@ def print_table(contributions, league_key, top_n=20):
     
     print("="*100)
 
-def save_player_results(contributions, league_key):
+def save_player_results(contributions, league_key, season_code):
     """Save player contributions to CSV
     
     Args:
@@ -181,7 +188,7 @@ def save_player_results(contributions, league_key):
     # Create file path using league folder
     folder = LEAGUES[league_key]['folder']
     league_folder = os.path.join(DATA_DIR, folder)
-    file_path = os.path.join(league_folder, 'player_results.csv')
+    file_path = os.path.join(league_folder, f'player_results_{season_code}.csv')
     
     # Ensure directory exists (shouldn't be needed, but safe)
     os.makedirs(league_folder, exist_ok=True)
@@ -196,23 +203,23 @@ def save_player_results(contributions, league_key):
 
 
 def main():
-    """Run player contribution analysis for all leagues."""
+    """Run player contribution analysis for all leagues/seasons."""
     print("\n" + "="*60)
     print("UNDERSTAT PLAYER CONTRIBUTION ANALYSIS")
     print("="*60)
-    
-    for league_key in LEAGUE_KEYS:
-        display_name = LEAGUES[league_key]['display_name']
-        print(f"\n[Processing {display_name}...]")
-        
-        try:
-            players_contributions = calculate_contributions(league_key)
-            save_player_results(players_contributions, league_key)
-            print(f"   ✓ {len(players_contributions)} players processed")
-        except Exception as e:
-            print(f"   ✗ Failed: {e}")
-    
 
-        
+    for season in SEASONS:
+        for league_key in LEAGUE_KEYS:
+            display_name = LEAGUES[league_key]['display_name']
+            print(f"\n[Processing {display_name} - Season {season}]")
+
+            try:
+                players_contributions = calculate_contributions(league_key, season)
+                save_player_results(players_contributions, league_key, season)
+                print(f"   ✓ {len(players_contributions)} players processed")
+            except Exception as e:
+                print(f"   ✗ Failed: {e}")
+
+
 if __name__ == "__main__":
     main()
