@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Football Performance Comparison - Automated Update Script
+# Gaffers Notebook - Automated Update Script
 # Runs the full data pipeline via main.py
 
 # Set environment for cron compatibility
@@ -29,7 +29,7 @@ fi
 # Redirect all output to log file
 {
     echo "====================================================="
-    echo "Football Performance Comparison - Auto Update"
+    echo "Gaffer's Notebook - Auto Update"
     echo "Time: $(date)"
     echo "Python: $PYTHON_BIN"
     echo "====================================================="
