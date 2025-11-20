@@ -1,6 +1,6 @@
 # config.py
 """
-Configuration file for Football Performance Comparison project.
+Configuration file for Gaffer's Notebook project.
 Contains league definitions, folder paths, and shared constants.
 """
 
@@ -42,15 +42,19 @@ LEAGUES = {
 LEAGUE_KEYS = ['serie_a', 'premier_league', 'la_liga', 'bundesliga', 'ligue_1']
 
 # Season codes
-SEASONS = ['2425', '2526']
+SEASONS = ['2021', '2122', '2223', '2324', '2425', '2526']
 PREVIOUS_SEASON = SEASONS[0]
 CURRENT_SEASON = SEASONS[-1]
 
 # Mapping between internal season codes and Understat season identifiers
 # Understat uses the starting calendar year of the season (e.g., 2024 for 2024/25)
 UNDERSTAT_SEASON_MAP = {
+    '2021': '2020',
+    '2122': '2021',
+    '2223': '2022',
+    '2324': '2023',
     '2425': '2024',
-    '2526': '2025',
+    '2526': '2025'
 }
 
 # Base paths
