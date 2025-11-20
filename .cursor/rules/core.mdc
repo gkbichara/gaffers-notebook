@@ -1,5 +1,5 @@
 ---
-description: Core project context & global rules for Performance Comparison analytics repo
+description: Core project context & global rules for Gaffer's Notebook repo
 globs:
   - "**/*"
 ---
