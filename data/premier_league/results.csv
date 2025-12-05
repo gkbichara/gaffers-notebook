@@ -7,6 +7,9 @@ Season,Team,Match_Number,Date,Opponent,Venue,Result,FTHG,FTAG,Points_cur,Points_
 2526,Arsenal,6,2025-10-04,West Ham,H,W,2,0,3,0.0,3.0,5.0
 2526,Arsenal,7,2025-10-18,Fulham,A,W,0,1,3,1.0,2.0,7.0
 2526,Arsenal,8,2025-10-26,Crystal Palace,H,W,1,0,3,1.0,2.0,9.0
+2526,Arsenal,9,2025-11-23,Tottenham,H,W,4,1,3,3.0,0.0,9.0
+2526,Arsenal,10,2025-11-30,Chelsea,A,D,1,1,1,1.0,0.0,9.0
+2526,Arsenal,11,2025-12-03,Brentford,H,W,2,0,3,1.0,2.0,11.0
 2526,Aston Villa,1,2025-08-16,Newcastle,H,D,0,0,1,3.0,-2.0,-2.0
 2526,Aston Villa,2,2025-08-23,Brentford,A,L,1,0,0,3.0,-3.0,-5.0
 2526,Aston Villa,3,2025-08-31,Crystal Palace,H,L,0,3,0,1.0,-1.0,-6.0
@@ -16,6 +19,8 @@ Season,Team,Match_Number,Date,Opponent,Venue,Result,FTHG,FTAG,Points_cur,Points_
 2526,Aston Villa,7,2025-10-26,Man City,H,W,1,0,3,3.0,0.0,-5.0
 2526,Aston Villa,8,2025-11-01,Liverpool,A,L,2,0,0,0.0,0.0,-5.0
 2526,Aston Villa,9,2025-11-09,Bournemouth,H,W,4,0,3,1.0,2.0,-3.0
+2526,Aston Villa,10,2025-11-30,Wolves,H,W,1,0,3,3.0,0.0,-3.0
+2526,Aston Villa,11,2025-12-03,Brighton,A,W,3,4,3,3.0,0.0,-3.0
 2526,Bournemouth,1,2025-08-15,Liverpool,A,L,4,2,0,0.0,0.0,0.0
 2526,Bournemouth,2,2025-08-23,Wolves,H,W,1,0,3,0.0,3.0,3.0
 2526,Bournemouth,3,2025-08-30,Tottenham,A,W,0,1,3,1.0,2.0,5.0
@@ -26,6 +31,8 @@ Season,Team,Match_Number,Date,Opponent,Venue,Result,FTHG,FTAG,Points_cur,Points_
 2526,Bournemouth,8,2025-10-26,Nott'm Forest,H,W,2,0,3,3.0,0.0,8.0
 2526,Bournemouth,9,2025-11-02,Man City,A,L,3,1,0,0.0,0.0,8.0
 2526,Bournemouth,10,2025-11-09,Aston Villa,A,L,4,0,0,1.0,-1.0,7.0
+2526,Bournemouth,11,2025-11-22,West Ham,H,D,2,2,1,1.0,0.0,7.0
+2526,Bournemouth,12,2025-12-02,Everton,H,L,0,1,0,3.0,-3.0,4.0
 2526,Brentford,1,2025-08-17,Nott'm Forest,A,L,3,1,0,3.0,-3.0,-3.0
 2526,Brentford,2,2025-08-23,Aston Villa,H,W,1,0,3,0.0,3.0,0.0
 2526,Brentford,3,2025-09-13,Chelsea,H,D,2,2,1,1.0,0.0,0.0
@@ -36,6 +43,8 @@ Season,Team,Match_Number,Date,Opponent,Venue,Result,FTHG,FTAG,Points_cur,Points_
 2526,Brentford,8,2025-10-25,Liverpool,H,W,3,2,3,0.0,3.0,2.0
 2526,Brentford,9,2025-11-01,Crystal Palace,A,L,2,0,0,3.0,-3.0,-1.0
 2526,Brentford,10,2025-11-09,Newcastle,H,W,3,1,3,3.0,0.0,-1.0
+2526,Brentford,11,2025-11-22,Brighton,A,L,2,1,0,1.0,-1.0,-2.0
+2526,Brentford,12,2025-12-03,Arsenal,A,L,2,0,0,1.0,-1.0,-3.0
 2526,Brighton,1,2025-08-16,Fulham,H,D,1,1,1,3.0,-2.0,-2.0
 2526,Brighton,2,2025-08-24,Everton,A,L,2,0,0,3.0,-3.0,-5.0
 2526,Brighton,3,2025-08-31,Man City,H,W,2,1,3,3.0,0.0,-5.0
@@ -46,6 +55,9 @@ Season,Team,Match_Number,Date,Opponent,Venue,Result,FTHG,FTAG,Points_cur,Points_
 2526,Brighton,8,2025-10-18,Newcastle,H,W,2,1,3,1.0,2.0,-7.0
 2526,Brighton,9,2025-10-25,Man United,A,L,4,2,0,3.0,-3.0,-10.0
 2526,Brighton,10,2025-11-09,Crystal Palace,A,D,0,0,1,0.0,1.0,-9.0
+2526,Brighton,11,2025-11-22,Brentford,H,W,2,1,3,1.0,2.0,-7.0
+2526,Brighton,12,2025-11-30,Nott'm Forest,A,W,0,2,3,0.0,3.0,-4.0
+2526,Brighton,13,2025-12-03,Aston Villa,H,L,3,4,0,0.0,0.0,-4.0
 2526,Chelsea,1,2025-08-17,Crystal Palace,H,D,0,0,1,1.0,0.0,0.0
 2526,Chelsea,2,2025-08-22,West Ham,A,W,1,5,3,3.0,0.0,0.0
 2526,Chelsea,3,2025-08-30,Fulham,H,W,2,0,3,0.0,3.0,3.0
@@ -56,6 +68,7 @@ Season,Team,Match_Number,Date,Opponent,Venue,Result,FTHG,FTAG,Points_cur,Points_
 2526,Chelsea,8,2025-10-18,Nott'm Forest,A,W,0,3,3,3.0,0.0,-1.0
 2526,Chelsea,9,2025-11-01,Tottenham,A,W,0,1,3,3.0,0.0,-1.0
 2526,Chelsea,10,2025-11-08,Wolves,H,W,3,0,3,3.0,0.0,-1.0
+2526,Chelsea,11,2025-11-30,Arsenal,H,D,1,1,1,1.0,0.0,-1.0
 2526,Crystal Palace,1,2025-08-17,Chelsea,A,D,0,0,1,1.0,0.0,0.0
 2526,Crystal Palace,2,2025-08-24,Nott'm Forest,H,D,1,1,1,1.0,0.0,0.0
 2526,Crystal Palace,3,2025-08-31,Aston Villa,A,W,0,3,3,1.0,2.0,2.0
@@ -66,6 +79,8 @@ Season,Team,Match_Number,Date,Opponent,Venue,Result,FTHG,FTAG,Points_cur,Points_
 2526,Crystal Palace,8,2025-10-26,Arsenal,A,L,1,0,0,1.0,-1.0,4.0
 2526,Crystal Palace,9,2025-11-01,Brentford,H,W,2,0,3,0.0,3.0,7.0
 2526,Crystal Palace,10,2025-11-09,Brighton,H,D,0,0,1,3.0,-2.0,5.0
+2526,Crystal Palace,11,2025-11-22,Wolves,A,W,0,2,3,1.0,2.0,7.0
+2526,Crystal Palace,12,2025-11-30,Man United,H,L,1,2,0,1.0,-1.0,6.0
 2526,Everton,1,2025-08-24,Brighton,H,W,2,0,3,0.0,3.0,3.0
 2526,Everton,2,2025-08-30,Wolves,A,W,2,3,3,1.0,2.0,5.0
 2526,Everton,3,2025-09-13,Aston Villa,H,D,0,0,1,0.0,1.0,6.0
@@ -75,6 +90,9 @@ Season,Team,Match_Number,Date,Opponent,Venue,Result,FTHG,FTAG,Points_cur,Points_
 2526,Everton,7,2025-10-18,Man City,A,L,2,0,0,1.0,-1.0,5.0
 2526,Everton,8,2025-10-26,Tottenham,H,L,0,3,0,3.0,-3.0,2.0
 2526,Everton,9,2025-11-08,Fulham,H,W,2,0,3,1.0,2.0,4.0
+2526,Everton,10,2025-11-24,Man United,A,W,0,1,3,0.0,3.0,7.0
+2526,Everton,11,2025-11-29,Newcastle,H,L,1,4,0,1.0,-1.0,6.0
+2526,Everton,12,2025-12-02,Bournemouth,A,W,0,1,3,0.0,3.0,9.0
 2526,Fulham,1,2025-08-16,Brighton,A,D,1,1,1,0.0,1.0,1.0
 2526,Fulham,2,2025-08-24,Man United,H,D,1,1,1,0.0,1.0,2.0
 2526,Fulham,3,2025-08-30,Chelsea,A,L,2,0,0,3.0,-3.0,-1.0
@@ -85,6 +103,8 @@ Season,Team,Match_Number,Date,Opponent,Venue,Result,FTHG,FTAG,Points_cur,Points_
 2526,Fulham,8,2025-10-25,Newcastle,A,L,2,1,0,3.0,-3.0,-5.0
 2526,Fulham,9,2025-11-01,Wolves,H,W,3,0,3,0.0,3.0,-2.0
 2526,Fulham,10,2025-11-08,Everton,A,L,2,0,0,1.0,-1.0,-3.0
+2526,Fulham,11,2025-11-29,Tottenham,A,W,1,2,3,1.0,2.0,-1.0
+2526,Fulham,12,2025-12-02,Man City,H,L,4,5,0,0.0,0.0,-1.0
 2526,Liverpool,1,2025-08-15,Bournemouth,H,W,4,2,3,3.0,0.0,0.0
 2526,Liverpool,2,2025-08-25,Newcastle,A,W,2,3,3,1.0,2.0,2.0
 2526,Liverpool,3,2025-08-31,Arsenal,H,W,1,0,3,1.0,2.0,4.0
@@ -95,6 +115,8 @@ Season,Team,Match_Number,Date,Opponent,Venue,Result,FTHG,FTAG,Points_cur,Points_
 2526,Liverpool,8,2025-10-25,Brentford,A,L,3,2,0,3.0,-3.0,-3.0
 2526,Liverpool,9,2025-11-01,Aston Villa,H,W,2,0,3,3.0,0.0,-3.0
 2526,Liverpool,10,2025-11-09,Man City,A,L,3,0,0,3.0,-3.0,-6.0
+2526,Liverpool,11,2025-11-22,Nott'm Forest,H,L,0,3,0,0.0,0.0,-6.0
+2526,Liverpool,12,2025-11-30,West Ham,A,W,0,2,3,3.0,0.0,-6.0
 2526,Man City,1,2025-08-16,Wolves,A,W,0,4,3,3.0,0.0,0.0
 2526,Man City,2,2025-08-23,Tottenham,H,L,0,2,0,0.0,0.0,0.0
 2526,Man City,3,2025-08-31,Brighton,A,L,2,1,0,0.0,0.0,0.0
@@ -105,6 +127,8 @@ Season,Team,Match_Number,Date,Opponent,Venue,Result,FTHG,FTAG,Points_cur,Points_
 2526,Man City,8,2025-10-26,Aston Villa,A,L,1,0,0,0.0,0.0,8.0
 2526,Man City,9,2025-11-02,Bournemouth,H,W,3,1,3,3.0,0.0,8.0
 2526,Man City,10,2025-11-09,Liverpool,H,W,3,0,3,0.0,3.0,11.0
+2526,Man City,11,2025-11-22,Newcastle,A,L,2,1,0,1.0,-1.0,10.0
+2526,Man City,12,2025-12-02,Fulham,A,W,4,5,3,3.0,0.0,10.0
 2526,Man United,1,2025-08-17,Arsenal,H,L,0,1,0,1.0,-1.0,-1.0
 2526,Man United,2,2025-08-24,Fulham,A,D,1,1,1,3.0,-2.0,-3.0
 2526,Man United,3,2025-09-14,Man City,A,L,3,0,0,3.0,-3.0,-6.0
@@ -114,6 +138,9 @@ Season,Team,Match_Number,Date,Opponent,Venue,Result,FTHG,FTAG,Points_cur,Points_
 2526,Man United,7,2025-10-25,Brighton,H,W,4,2,3,0.0,3.0,1.0
 2526,Man United,8,2025-11-01,Nott'm Forest,A,D,2,2,1,0.0,1.0,2.0
 2526,Man United,9,2025-11-08,Tottenham,A,D,2,2,1,0.0,1.0,3.0
+2526,Man United,10,2025-11-24,Everton,H,L,0,1,0,3.0,-3.0,0.0
+2526,Man United,11,2025-11-30,Crystal Palace,A,W,1,2,3,1.0,2.0,2.0
+2526,Man United,12,2025-12-04,West Ham,H,D,1,1,1,0.0,1.0,3.0
 2526,Newcastle,1,2025-08-16,Aston Villa,A,D,0,0,1,0.0,1.0,1.0
 2526,Newcastle,2,2025-08-25,Liverpool,H,L,2,3,0,1.0,-1.0,0.0
 2526,Newcastle,3,2025-09-13,Wolves,H,W,1,0,3,3.0,0.0,0.0
@@ -124,6 +151,9 @@ Season,Team,Match_Number,Date,Opponent,Venue,Result,FTHG,FTAG,Points_cur,Points_
 2526,Newcastle,8,2025-10-25,Fulham,H,W,2,1,3,0.0,3.0,-1.0
 2526,Newcastle,9,2025-11-02,West Ham,A,L,3,1,0,3.0,-3.0,-4.0
 2526,Newcastle,10,2025-11-09,Brentford,A,L,3,1,0,0.0,0.0,-4.0
+2526,Newcastle,11,2025-11-22,Man City,H,W,2,1,3,1.0,2.0,-2.0
+2526,Newcastle,12,2025-11-29,Everton,A,W,1,4,3,1.0,2.0,0.0
+2526,Newcastle,13,2025-12-02,Tottenham,H,D,2,2,1,3.0,-2.0,-2.0
 2526,Nott'm Forest,1,2025-08-17,Brentford,H,W,3,1,3,0.0,3.0,3.0
 2526,Nott'm Forest,2,2025-08-24,Crystal Palace,A,D,1,1,1,1.0,0.0,3.0
 2526,Nott'm Forest,3,2025-08-31,West Ham,H,L,0,3,0,3.0,-3.0,0.0
@@ -132,6 +162,9 @@ Season,Team,Match_Number,Date,Opponent,Venue,Result,FTHG,FTAG,Points_cur,Points_
 2526,Nott'm Forest,6,2025-10-18,Chelsea,H,L,0,3,0,0.0,0.0,0.0
 2526,Nott'm Forest,7,2025-10-26,Bournemouth,A,L,2,0,0,0.0,0.0,0.0
 2526,Nott'm Forest,8,2025-11-01,Man United,H,D,2,2,1,3.0,-2.0,-2.0
+2526,Nott'm Forest,9,2025-11-22,Liverpool,A,W,0,3,3,3.0,0.0,-2.0
+2526,Nott'm Forest,10,2025-11-30,Brighton,H,L,0,2,0,3.0,-3.0,-5.0
+2526,Nott'm Forest,11,2025-12-03,Wolves,A,W,0,1,3,3.0,0.0,-5.0
 2526,Tottenham,1,2025-08-23,Man City,A,W,0,2,3,3.0,0.0,0.0
 2526,Tottenham,2,2025-08-30,Bournemouth,H,L,0,1,0,1.0,-1.0,-1.0
 2526,Tottenham,3,2025-09-13,West Ham,A,W,0,3,3,1.0,2.0,1.0
@@ -141,6 +174,9 @@ Season,Team,Match_Number,Date,Opponent,Venue,Result,FTHG,FTAG,Points_cur,Points_
 2526,Tottenham,7,2025-10-26,Everton,A,W,0,3,3,0.0,3.0,2.0
 2526,Tottenham,8,2025-11-01,Chelsea,H,L,0,1,0,0.0,0.0,2.0
 2526,Tottenham,9,2025-11-08,Man United,H,D,2,2,1,3.0,-2.0,0.0
+2526,Tottenham,10,2025-11-23,Arsenal,A,L,4,1,0,0.0,0.0,0.0
+2526,Tottenham,11,2025-11-29,Fulham,H,L,1,2,0,1.0,-1.0,-1.0
+2526,Tottenham,12,2025-12-02,Newcastle,A,D,2,2,1,0.0,1.0,0.0
 2526,West Ham,1,2025-08-22,Chelsea,H,L,1,5,0,0.0,0.0,0.0
 2526,West Ham,2,2025-08-31,Nott'm Forest,A,W,0,3,3,0.0,3.0,3.0
 2526,West Ham,3,2025-09-13,Tottenham,H,L,0,3,0,1.0,-1.0,2.0
@@ -149,6 +185,9 @@ Season,Team,Match_Number,Date,Opponent,Venue,Result,FTHG,FTAG,Points_cur,Points_
 2526,West Ham,6,2025-10-04,Arsenal,A,L,2,0,0,3.0,-3.0,-1.0
 2526,West Ham,7,2025-10-20,Brentford,H,L,0,2,0,0.0,0.0,-1.0
 2526,West Ham,8,2025-11-02,Newcastle,H,W,3,1,3,0.0,3.0,2.0
+2526,West Ham,9,2025-11-22,Bournemouth,A,D,2,2,1,1.0,0.0,2.0
+2526,West Ham,10,2025-11-30,Liverpool,H,L,0,2,0,0.0,0.0,2.0
+2526,West Ham,11,2025-12-04,Man United,A,D,1,1,1,3.0,-2.0,0.0
 2526,Wolves,1,2025-08-16,Man City,H,L,0,4,0,0.0,0.0,0.0
 2526,Wolves,2,2025-08-23,Bournemouth,A,L,1,0,0,3.0,-3.0,-3.0
 2526,Wolves,3,2025-08-30,Everton,H,L,2,3,0,1.0,-1.0,-4.0
@@ -157,3 +196,6 @@ Season,Team,Match_Number,Date,Opponent,Venue,Result,FTHG,FTAG,Points_cur,Points_
 2526,Wolves,6,2025-10-05,Brighton,H,D,1,1,1,0.0,1.0,-3.0
 2526,Wolves,7,2025-11-01,Fulham,A,L,3,0,0,3.0,-3.0,-6.0
 2526,Wolves,8,2025-11-08,Chelsea,A,L,3,0,0,0.0,0.0,-6.0
+2526,Wolves,9,2025-11-22,Crystal Palace,H,L,0,2,0,1.0,-1.0,-7.0
+2526,Wolves,10,2025-11-30,Aston Villa,A,L,1,0,0,0.0,0.0,-7.0
+2526,Wolves,11,2025-12-03,Nott'm Forest,H,L,0,1,0,0.0,0.0,-7.0
