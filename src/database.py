@@ -268,7 +268,7 @@ def upload_elo_match_history(history_df):
         return False
 
 
-def get_raw_matches(league=None, season=None):
+def get_raw_matches(league=None, season=None, after_date=None):
     """Query raw matches from Supabase."""
     client = get_db()
     
@@ -283,6 +283,8 @@ def get_raw_matches(league=None, season=None):
             query = query.eq("league", league)
         if season:
             query = query.eq("season", season)
+        if after_date:
+            query = query.gt("date", after_date)
         
         query = query.order("date").range(offset, offset + page_size - 1)
         response = query.execute()

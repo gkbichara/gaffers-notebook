@@ -165,24 +165,29 @@ class EloTracker:
             self.ratings[row['team']] = row['elo_rating']
             self.match_counts[row['team']] = row['matches_played']
         print(f"   Loaded {len(self.ratings)} team ratings from DB")
-    
 
-    def process_new_matches(self, matches_df, last_processed_date=None):
-        """Process only matches after the last processed date."""
+    @classmethod
+    def from_db(cls):
+        """Create an EloTracker initialized from database state."""
+        from src.database import get_elo_ratings
+        
+        tracker = cls()
+        ratings_df = get_elo_ratings()
+        if len(ratings_df) > 0:
+            tracker.load_from_db(ratings_df)
+        return tracker
+
+    def process_new_matches(self, matches_df):
+        """Process matches (already filtered to new ones from DB query)."""
+        if len(matches_df) == 0:
+            print("   No new matches to process")
+            return 0
+        
         if 'date' in matches_df.columns:
             matches_df = matches_df.rename(columns={'date': 'Date'})
         
         if not pd.api.types.is_datetime64_any_dtype(matches_df['Date']):
             matches_df['Date'] = pd.to_datetime(matches_df['Date'])
-        
-        # Filter to only new matches
-        if last_processed_date:
-            last_date = pd.to_datetime(last_processed_date)
-            matches_df = matches_df[matches_df['Date'] > last_date]
-        
-        if len(matches_df) == 0:
-            print("   No new matches to process")
-            return
         
         matches_df = matches_df.sort_values('Date')
         
@@ -198,3 +203,38 @@ class EloTracker:
             )
         
         print(f"   Processed {len(matches_df)} new matches")
+        return len(matches_df)
+
+
+def run_incremental_elo():
+    """Run incremental ELO update using database."""
+    from src.database import (
+        get_raw_matches, 
+        get_last_processed_match_date,
+        upload_elo_ratings,
+        upload_elo_match_history
+    )
+    
+    print("\n--- Incremental ELO Update ---")
+    
+    # Load tracker with existing state from DB
+    tracker = EloTracker.from_db()
+    
+    # Get only new matches (filtered at DB level)
+    last_date = get_last_processed_match_date()
+    print(f"   Last processed: {last_date or 'None (fresh start)'}")
+    
+    new_matches = get_raw_matches(after_date=last_date)
+    tracker.process_new_matches(new_matches)
+    
+    # Upload results if there were new matches
+    if len(tracker.history) > 0:
+        history_df = tracker.get_history_df()
+        upload_elo_match_history(history_df)
+        
+        ratings_df = tracker.get_current_ratings_df()
+        upload_elo_ratings(ratings_df)
+        
+        print(f"   ✓ Uploaded {len(tracker.history)} new ELO records")
+    else:
+        print("   ✓ ELO ratings are up to date")
