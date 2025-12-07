@@ -157,3 +157,44 @@ class EloTracker:
         df = pd.DataFrame(data).sort_values('Elo', ascending=False)
         df['Rank'] = range(1, len(df) + 1)
         return df[['Rank', 'Team', 'Elo', 'Matches']]
+
+    
+    def load_from_db(self, ratings_df):
+        """Load existing ratings and match counts from database."""
+        for _, row in ratings_df.iterrows():
+            self.ratings[row['team']] = row['elo_rating']
+            self.match_counts[row['team']] = row['matches_played']
+        print(f"   Loaded {len(self.ratings)} team ratings from DB")
+    
+
+    def process_new_matches(self, matches_df, last_processed_date=None):
+        """Process only matches after the last processed date."""
+        if 'date' in matches_df.columns:
+            matches_df = matches_df.rename(columns={'date': 'Date'})
+        
+        if not pd.api.types.is_datetime64_any_dtype(matches_df['Date']):
+            matches_df['Date'] = pd.to_datetime(matches_df['Date'])
+        
+        # Filter to only new matches
+        if last_processed_date:
+            last_date = pd.to_datetime(last_processed_date)
+            matches_df = matches_df[matches_df['Date'] > last_date]
+        
+        if len(matches_df) == 0:
+            print("   No new matches to process")
+            return
+        
+        matches_df = matches_df.sort_values('Date')
+        
+        for _, row in matches_df.iterrows():
+            self.process_match(
+                home_team=row.get('home_team') or row.get('HomeTeam'),
+                away_team=row.get('away_team') or row.get('AwayTeam'),
+                fthg=row.get('fthg') or row.get('FTHG'),
+                ftag=row.get('ftag') or row.get('FTAG'),
+                date=row['Date'],
+                season=row.get('season') or row.get('Season'),
+                league=row.get('league') or row.get('League')
+            )
+        
+        print(f"   Processed {len(matches_df)} new matches")

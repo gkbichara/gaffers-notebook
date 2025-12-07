@@ -125,3 +125,210 @@ def update_team_stats(league_key, season, results_df):
     except Exception as e:
         print(f"   ✗ Team Stats Upload Failed: {e}")
         return False
+
+
+def upload_raw_matches(df):
+    """Upload raw match data to Supabase."""
+    client = get_db()
+    
+    # Core columns to extract (everything else goes to betting_odds)
+    core_cols = [
+        'Div', 'Date', 'Time', 'HomeTeam', 'AwayTeam',
+        'FTHG', 'FTAG', 'FTR', 'HTHG', 'HTAG', 'HTR',
+        'HS', 'AS', 'HST', 'AST', 'HF', 'AF', 'HC', 'AC',
+        'HY', 'AY', 'HR', 'AR', 'league', 'season'
+    ]
+    
+    records = []
+    for _, row in df.iterrows():
+        # Build core record with lowercase keys for DB
+        record = {
+            'league': row.get('league'),
+            'season': row.get('season'),
+            'div': row.get('Div'),
+            'date': pd.to_datetime(row.get('Date'), dayfirst=True).strftime('%Y-%m-%d') if pd.notna(row.get('Date')) else None,
+            'time': row.get('Time'),
+            'home_team': row.get('HomeTeam'),
+            'away_team': row.get('AwayTeam'),
+            'fthg': row.get('FTHG'),
+            'ftag': row.get('FTAG'),
+            'ftr': row.get('FTR'),
+            'hthg': row.get('HTHG'),
+            'htag': row.get('HTAG'),
+            'htr': row.get('HTR'),
+            'hs': row.get('HS'),
+            'as_col': row.get('AS'),
+            'hst': row.get('HST'),
+            'ast': row.get('AST'),
+            'hf': row.get('HF'),
+            'af': row.get('AF'),
+            'hc': row.get('HC'),
+            'ac': row.get('AC'),
+            'hy': row.get('HY'),
+            'ay': row.get('AY'),
+            'hr': row.get('HR'),
+            'ar': row.get('AR'),
+        }
+        
+        # Bundle betting odds into JSONB
+        betting = {k: v for k, v in row.items() if k not in core_cols and pd.notna(v)}
+        record['betting_odds'] = betting if betting else None
+        
+        # Clean NaN values
+        record = {k: (None if pd.isna(v) else v) for k, v in record.items()}
+        records.append(record)
+    
+    try:
+        chunk_size = 500
+        for i in range(0, len(records), chunk_size):
+            chunk = records[i:i + chunk_size]
+            client.table("raw_matches").upsert(
+                chunk,
+                on_conflict="league, season, date, home_team, away_team"
+            ).execute()
+        
+        print(f"   ✓ Uploaded {len(records)} raw matches to Supabase")
+        return True
+    except Exception as e:
+        print(f"   ✗ Raw Matches Upload Failed: {e}")
+        return False
+
+
+def upload_elo_ratings(ratings_df):
+    """Upload current ELO ratings to Supabase."""
+    client = get_db()
+    
+    records = []
+    for _, row in ratings_df.iterrows():
+        record = {
+            'team': row['Team'],
+            'league': row.get('league'),
+            'elo_rating': row['Elo'],
+            'matches_played': row['Matches'],
+            'last_match_date': row.get('last_match_date'),
+        }
+        record = {k: (None if pd.isna(v) else v) for k, v in record.items()}
+        records.append(record)
+    
+    try:
+        client.table("elo_ratings").upsert(
+            records, 
+            on_conflict="team"
+        ).execute()
+        print(f"   ✓ Uploaded {len(records)} ELO ratings to Supabase")
+        return True
+    except Exception as e:
+        print(f"   ✗ ELO Ratings Upload Failed: {e}")
+        return False
+
+
+def upload_elo_match_history(history_df):
+    """Upload ELO match history to Supabase."""
+    client = get_db()
+    
+    records = []
+    for _, row in history_df.iterrows():
+        date_val = row.get('Date')
+        if pd.notna(date_val):
+            date_val = pd.to_datetime(date_val).strftime('%Y-%m-%d')
+        
+        record = {
+            'date': date_val,
+            'season': row['Season'],
+            'league': row['League'],
+            'home_team': row['HomeTeam'],
+            'away_team': row['AwayTeam'],
+            'fthg': row.get('FTHG'),
+            'ftag': row.get('FTAG'),
+            'result': 'H' if row.get('FTHG', 0) > row.get('FTAG', 0) else ('A' if row.get('FTAG', 0) > row.get('FTHG', 0) else 'D'),
+            'home_elo_before': row['HomeRating_Before'],
+            'away_elo_before': row['AwayRating_Before'],
+            'home_elo_after': row['HomeRating_After'],
+            'away_elo_after': row['AwayRating_After'],
+            'elo_change_home': row.get('Rating_Change_Home'),
+            'elo_change_away': row.get('Rating_Change_Away'),
+            'expected_home_win': row.get('Expected_Home_Win'),
+        }
+        record = {k: (None if pd.isna(v) else v) for k, v in record.items()}
+        records.append(record)
+    
+    try:
+        chunk_size = 500
+        for i in range(0, len(records), chunk_size):
+            chunk = records[i:i + chunk_size]
+            client.table("elo_match_history").upsert(
+                chunk,
+                on_conflict="league, season, date, home_team, away_team"
+            ).execute()
+        
+        print(f"   ✓ Uploaded {len(records)} ELO match history records to Supabase")
+        return True
+    except Exception as e:
+        print(f"   ✗ ELO Match History Upload Failed: {e}")
+        return False
+
+
+def get_raw_matches(league=None, season=None):
+    """Query raw matches from Supabase."""
+    client = get_db()
+    
+    all_data = []
+    page_size = 1000
+    offset = 0
+    
+    while True:
+        query = client.table("raw_matches").select("*")
+        
+        if league:
+            query = query.eq("league", league)
+        if season:
+            query = query.eq("season", season)
+        
+        query = query.order("date").range(offset, offset + page_size - 1)
+        response = query.execute()
+        
+        if not response.data:
+            break
+            
+        all_data.extend(response.data)
+        
+        if len(response.data) < page_size:
+            break
+            
+        offset += page_size
+    
+    return pd.DataFrame(all_data)
+
+    
+def get_elo_ratings():
+    """Query current ELO ratings from Supabase."""
+    client = get_db()
+    
+    response = client.table("elo_ratings").select("*").order("elo_rating", desc=True).execute()
+    return pd.DataFrame(response.data)
+
+    
+def get_elo_match_history(league=None):
+    """Query ELO match history for incremental processing."""
+    client = get_db()
+    
+    query = client.table("elo_match_history").select("*")
+    
+    if league:
+        query = query.eq("league", league)
+    
+    query = query.order("date")
+    
+    response = query.execute()
+    return pd.DataFrame(response.data)
+
+
+def get_last_processed_match_date():
+    """Get the most recent match date in ELO history (for incremental processing)."""
+    client = get_db()
+    
+    response = client.table("elo_match_history").select("date").order("date", desc=True).limit(1).execute()
+    
+    if response.data:
+        return response.data[0]['date']
+    return None

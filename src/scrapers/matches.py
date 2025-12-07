@@ -1,6 +1,9 @@
 import requests
 import os
 from src.config import LEAGUES, LEAGUE_KEYS, SEASONS, FBDATA_BASE_URL, DATA_DIR, CURRENT_SEASON
+import pandas as pd
+from src.database import upload_raw_matches
+from io import StringIO
 
 
 def download_league_data(league_key, season):
@@ -30,17 +33,19 @@ def download_league_data(league_key, season):
         print(f"Downloading {display_name} {season}... ", end="")
         response = requests.get(url, timeout=10)
         response.raise_for_status()  # Raise error for bad status codes
+        df = pd.read_csv(StringIO(response.text))
+        df['league'] = league_key
+        df['season'] = season
         
-        # Save to file
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(response.text)
+        # Save to local cache
+        df.to_csv(file_path, index=False)
         
         print(f"✓ Saved to {file_path}")
-        return True
+        return df
         
     except requests.exceptions.RequestException as e:
         print(f"✗ Failed: {e}")
-        return False
+        return None
 
 
 def main(seasons_to_scrape=None):
@@ -65,7 +70,9 @@ def main(seasons_to_scrape=None):
         display_name = LEAGUES[league_key]['display_name']
         print(f"\n{display_name}:")
         for season in seasons_to_scrape:
-            if download_league_data(league_key, season):
+            df = download_league_data(league_key, season)
+            if df is not None:
+                upload_raw_matches(df)
                 successful += 1
     
     print("\n" + "=" * 50)
