@@ -28,13 +28,13 @@
   - [x] load_from_db() - load existing ratings from DB
   - [x] process_new_matches() - process only new matches
 - [ ] Update src/analysis/teams.py to query from DB instead of local CSV
-- [ ] Create wrapper function for full incremental ELO update
-- [ ] Wire into main.py
+- [x] Create run_incremental_elo() wrapper function
+- [x] Wire into main.py
 
-### Phase 4: Pipeline Orchestration
-- [ ] Update src/main.py to run both pipelines (scrape → analysis)
+### Phase 4: Pipeline Orchestration ✅
+- [x] Update src/main.py to use incremental ELO from DB
 - [ ] Update GitHub Action to trigger chained pipelines
-- [ ] Add data/ to .gitignore
+- [x] Add data/ to .gitignore
 
 ### Phase 5: Migration & Testing
 - [x] Seed raw_matches with all historical data (9322 matches)
