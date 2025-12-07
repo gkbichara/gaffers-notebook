@@ -33,7 +33,7 @@
 
 ### Phase 4: Pipeline Orchestration ✅
 - [x] Update src/main.py to use incremental ELO from DB
-- [ ] Update GitHub Action to trigger chained pipelines
+- [x] Update GitHub Action (removed git commits, DB-only)
 - [x] Add data/ to .gitignore
 
 ### Phase 5: Migration & Testing
