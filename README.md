@@ -2,9 +2,9 @@
 
 ## Overview
 
-**The Gaffer's Notebook** is a data pipeline that tracks how every club across **Europe's Top 5 Leagues** is trending year-over-year, both at the team level and the player level. It combines results from [football-data.co.uk](https://www.football-data.co.uk/) with player metrics from [Understat.com](https://understat.com/), pushes everything into Supabase each night, and exposes clean CSVs plus a database you can query or build dashboards on top of.
+**The Gaffer's Notebook** is a data pipeline that tracks how every club across **Europe's Top 5 Leagues** is trending year-over-year, both at the team level and the player level. It combines results from [football-data.co.uk](https://www.football-data.co.uk/) with player metrics from [Understat.com](https://understat.com/), and uses **Supabase as the single source of truth** for all data.
 
-Instead of just showing league tables, the project measures *how much better or worse* each team is doing **against the same opponents and venues** they faced last year, and how much each player contributes to their club's goal-scoring and (soon) xG output.
+Instead of just showing league tables, the project measures *how much better or worse* each team is doing **against the same opponents and venues** they faced last year, tracks **ELO ratings** across all teams, and analyzes how much each player contributes to their club's goal-scoring.
 
 **Leagues Covered:**
 - 🇮🇹 Serie A
@@ -32,6 +32,15 @@ For each team and gameweek:
 5. **League-wide view:** Identify biggest over- and underperformers week by week.
 
 Fixtures involving newly promoted or relegated teams are **excluded** to avoid biasing comparisons.
+
+### ELO Rating System
+The pipeline maintains **cross-league ELO ratings** for all teams:
+
+- **Base Rating:** 1500 for new teams
+- **Home Advantage:** +60 ELO equivalent
+- **K-Factor:** 40 for new teams, 20 for established teams (30+ matches)
+- **Margin Multiplier:** Bigger wins = bigger rating changes
+- **Incremental Updates:** Only processes new matches
 
 ---
 
@@ -62,19 +71,18 @@ gaffers-notebook/
 │   │   └── understat.py     # Raw data fetching from Understat
 │   └── analysis/            # Data Transformation & Logic
 │       ├── __init__.py
+│       ├── elo.py           # ELO rating calculations
 │       ├── teams.py         # YoY team performance logic
 │       └── players.py       # Player contribution calculation
-├── data/
+├── data/                  # Local cache only (gitignored)
 │   ├── serie_a/
-│   │   ├── 2425.csv           # Historical season data
-│   │   ├── 2526.csv           # Current season data
-│   │   ├── results.csv        # Team YoY comparison
-│   │   ├── player_results_2425.csv # Player contributions (season tagged)
-│   │   └── player_results_2526.csv
-│   ├── premier_league/
-│   ├── la_liga/
-│   ├── bundesliga/
-│   └── ligue_1/
+│   │   ├── 2526.csv           # Current season cache
+│   │   └── results.csv        # YoY comparison cache
+│   └── ...                # Other leagues
+├── tests/                 # Unit tests (28 tests)
+│   ├── test_analysis.py
+│   ├── test_database.py
+│   └── test_elo.py
 ├── logs/                   # Execution logs from automated runs
 ├── run_update.sh           # Automated update script (local cron)
 ├── requirements.txt        # Python dependencies
@@ -232,10 +240,11 @@ python -m src.main
 ```
 
 This runs the complete pipeline:
-1. Scrapes latest team data from football-data.co.uk
-2. Performs YoY analysis for all leagues
-3. Fetches player contribution data from Understat
-4. Exports all results to CSV files
+1. Scrapes latest team data from football-data.co.uk → uploads to Supabase
+2. Runs incremental ELO calculations → uploads ratings to Supabase
+3. Performs YoY analysis for all leagues → uploads to Supabase
+4. Fetches player contribution data from Understat → uploads to Supabase
+5. Saves local CSV cache in `data/` folder
 
 ### 3. Run Components Individually (Optional)
 
@@ -299,7 +308,7 @@ The project includes a GitHub Actions workflow that runs automatically on GitHub
 - ✅ Runs daily at 3 AM UTC (configurable)
 - ✅ Automatically fetches latest data
 - ✅ Runs analysis on all leagues
-- ✅ Commits updated data to the repository
+- ✅ Uploads everything to Supabase (no git commits needed)
 - ✅ Uploads logs as downloadable artifacts
 - ✅ Works even when your computer is off!
 
@@ -309,9 +318,9 @@ The project includes a GitHub Actions workflow that runs automatically on GitHub
 3. Click "Run workflow"
 
 **View Results:**
-- Updated data appears in `data/[League]/` folders
+- Data is uploaded to Supabase (query via dashboard or API)
 - Download logs from the Actions run page
-- Check commit history for automated updates
+- Local `data/` folder is just a cache (gitignored)
 
 **Customize Schedule:**
 
@@ -370,18 +379,16 @@ The `run_update.sh` script:
 
 ## 🎯 Key Features
 
+✅ **Database-First Architecture** - Supabase is the single source of truth  
+✅ **Cross-League ELO Ratings** - Track team strength with incremental updates  
 ✅ **Multi-League Coverage** - Analyzes all Top 5 European leagues  
 ✅ **Match-by-Match Tracking** - See progression through the season  
 ✅ **Fair Comparisons** - Same opponent, same venue only  
 ✅ **Player Contribution Analysis** - Track individual player impact across all leagues  
 ✅ **Automated Data Fetching** - Built-in scrapers for football-data.co.uk and Understat  
 ✅ **GitHub Actions Automation** - Daily updates run automatically on GitHub servers  
-✅ **Manual & Scheduled Updates** - Run on-demand or via automated schedule  
-✅ **Main Pipeline Orchestrator** - Single command runs entire analysis workflow  
+✅ **28 Unit Tests** - Comprehensive test coverage for database and ELO logic  
 ✅ **Centralized Configuration** - Easy league management via config.py  
-✅ **Clean Codebase** - Pythonic naming conventions, modular architecture  
-✅ **Comprehensive Logging** - All executions tracked with timestamps  
-✅ **CSV Exports** - Easy to analyze in Excel, pandas, or other tools  
 ✅ **Promoted Team Handling** - Automatically excludes teams without comparison data
 
 ---
