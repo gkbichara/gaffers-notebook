@@ -41,6 +41,9 @@ LEAGUES = {
 # Ordered list of league keys for iteration
 LEAGUE_KEYS = ['serie_a', 'premier_league', 'la_liga', 'bundesliga', 'ligue_1']
 
+# Display name mapping for UI
+LEAGUE_DISPLAY_NAMES = {key: info['display_name'] for key, info in LEAGUES.items()}
+
 # Season codes
 SEASONS = ['2021', '2122', '2223', '2324', '2425', '2526']
 PREVIOUS_SEASON = SEASONS[0]
