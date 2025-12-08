@@ -90,7 +90,8 @@ def compare_seasons(cur_season_df, prev_season_df, team_name):
     all_comparisons = pd.concat([home_comparison, away_comparison], ignore_index=True)
     
     # Sort by date to see chronological progression
-    all_comparisons['Date'] = pd.to_datetime(all_comparisons['Date'], format='%d/%m/%Y')
+    # Handle both ISO8601 (from DB) and DD/MM/YYYY (from CSV)
+    all_comparisons['Date'] = pd.to_datetime(all_comparisons['Date'], format='mixed', dayfirst=True)
     all_comparisons = all_comparisons.sort_values('Date').reset_index(drop=True)
     
     # Remove promoted/relegated teams (NaN in previous season)
