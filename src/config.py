@@ -49,6 +49,19 @@ SEASONS = ['2021', '2122', '2223', '2324', '2425', '2526']
 PREVIOUS_SEASON = SEASONS[0]
 CURRENT_SEASON = SEASONS[-1]
 
+# Season display names for UI (short code -> full format)
+SEASON_DISPLAY_NAMES = {
+    '2021': '2020/2021',
+    '2122': '2021/2022',
+    '2223': '2022/2023',
+    '2324': '2023/2024',
+    '2425': '2024/2025',
+    '2526': '2025/2026'
+}
+
+# Reverse mapping (display -> code)
+SEASON_CODES = {v: k for k, v in SEASON_DISPLAY_NAMES.items()}
+
 # Mapping between internal season codes and Understat season identifiers
 # Understat uses the starting calendar year of the season (e.g., 2024 for 2024/25)
 UNDERSTAT_SEASON_MAP = {

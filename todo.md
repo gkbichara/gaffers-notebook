@@ -18,17 +18,16 @@ All phases complete. Supabase is now the single source of truth.
 
 > **Design Principle:** Design for the end state, iterate towards it — not through disposable versions.
 
-**Current Status:** 4 pages built and functional. ELO History page pending xG integration for gameweek data.
+**Current Status:** All core pages complete. Dashboard deployed to Streamlit Cloud.
 
 ### Architecture (Implemented)
 ```
 gaffers-notebook/
 ├── app.py                      ← Home/Overview (landing page) ✅
 ├── pages/
-│   ├── 1_ELO_Rankings.py       ← Cross-league leaderboard ✅
-│   ├── 2_ELO_History.py        ← Team rating progression (PENDING - needs gameweek data)
-│   ├── 3_YoY_Differentials.py  ← Cumulative differential charts ✅
-│   ├── 4_Player_Stats.py       ← Player comparison with charts ✅
+│   ├── 1_ELO_Rankings.py       ← Rankings + History (merged) ✅
+│   ├── 2_YoY_Differentials.py  ← Cumulative differential charts ✅
+│   ├── 3_Player_Stats.py       ← Player comparison with charts ✅
 │   └── (future: xG, opponent difficulty, predictions)
 └── src/
     └── database.py             ← Shared data layer with pagination ✅
@@ -41,15 +40,14 @@ gaffers-notebook/
 - [x] Create `pages/` directory
 - [x] Add streamlit + plotly + streamlit-searchbox to requirements.txt
 
-**Phase 2: Core Pages** (3/4 complete)
-- [x] `1_ELO_Rankings.py` — Sortable table, league/team filters, reset button
-- [ ] `2_ELO_History.py` — Blocked: needs gameweek data (will come with xG integration)
-- [x] `3_YoY_Differentials.py` — Multi-team comparison, line chart, heatmap table
-- [x] `4_Player_Stats.py` — Accent-insensitive search, 10-player comparison, stacked bar chart
+**Phase 2: Core Pages** ✅
+- [x] `1_ELO_Rankings.py` — Rankings table + history chart when team selected
+- [x] `2_YoY_Differentials.py` — Multi-team comparison, line chart, heatmap table, Roma default
+- [x] `3_Player_Stats.py` — Accent-insensitive search, 10-player comparison, stacked bar chart
 
 **Phase 3: Polish & Deploy**
 - [x] Add caching with `@st.cache_data` for DB queries
-- [ ] Add consistent styling/theme across pages
+- [x] Add consistent styling/theme across pages
 - [x] Deploy to Streamlit Cloud (free for public apps)
 - [x] Add secrets: SUPABASE_URL, SUPABASE_KEY
 

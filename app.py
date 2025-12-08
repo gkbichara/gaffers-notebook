@@ -110,7 +110,7 @@ with col4:
 st.divider()
 
 # --- Player Contributions Section ---
-st.header("👥 Top Player Contributions")
+st.header("Top Player Contributions")
 
 if len(player_stats_df) > 0:
     top_players = player_stats_df.nlargest(10, 'contribution_pct')[

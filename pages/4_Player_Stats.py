@@ -8,7 +8,7 @@ import unicodedata
 from streamlit_searchbox import st_searchbox
 
 from src.database import get_player_stats
-from src.config import LEAGUE_DISPLAY_NAMES, CURRENT_SEASON, CHART_COLORS
+from src.config import LEAGUE_DISPLAY_NAMES, CURRENT_SEASON, CHART_COLORS, SEASON_DISPLAY_NAMES, SEASON_CODES
 
 st.set_page_config(
     page_title="Player Stats | Gaffer's Notebook",
@@ -46,11 +46,14 @@ if len(player_stats_df) == 0:
 player_stats_df['league_display'] = player_stats_df['league'].map(LEAGUE_DISPLAY_NAMES)
 player_stats_df['player_name_normalized'] = player_stats_df['player_name'].apply(normalize_text)
 
+# Get current season display name
+CURRENT_SEASON_DISPLAY = SEASON_DISPLAY_NAMES.get(CURRENT_SEASON, CURRENT_SEASON)
+
 # Handle reset
 if "reset_player_filters" in st.session_state and st.session_state["reset_player_filters"]:
     st.session_state["reset_player_filters"] = False
     st.session_state["player_league"] = None
-    st.session_state["player_season"] = CURRENT_SEASON
+    st.session_state["player_season"] = CURRENT_SEASON_DISPLAY
     st.session_state["player_team"] = None
     st.session_state["selected_players_list"] = []
     st.session_state["player_min_games"] = 1
@@ -76,15 +79,18 @@ with col1:
     )
 
 with col2:
-    # Season filter - default to current season
-    available_seasons = sorted(player_stats_df['season'].unique().tolist(), reverse=True)
-    default_season_idx = available_seasons.index(CURRENT_SEASON) if CURRENT_SEASON in available_seasons else 0
-    selected_season = st.selectbox(
+    # Season filter - default to current season (using display names)
+    available_season_codes = sorted(player_stats_df['season'].unique().tolist())
+    available_seasons_display = [SEASON_DISPLAY_NAMES.get(s, s) for s in available_season_codes]
+    default_season_idx = available_seasons_display.index(CURRENT_SEASON_DISPLAY) if CURRENT_SEASON_DISPLAY in available_seasons_display else 0
+    selected_season_display = st.selectbox(
         "Season",
-        options=available_seasons,
+        options=available_seasons_display,
         index=default_season_idx,
         key="player_season"
     )
+    # Convert back to code for filtering
+    selected_season = SEASON_CODES.get(selected_season_display, selected_season_display)
 
 with col3:
     # Team filter (filtered by league)
@@ -307,6 +313,9 @@ display_df = filtered_df[[
     'player_name', 'team', 'league_display', 'season',
     'goals', 'assists', 'contributions', 'contribution_pct', 'games_played'
 ]].copy()
+
+# Convert season to display format
+display_df['season'] = display_df['season'].map(SEASON_DISPLAY_NAMES)
 
 display_df.columns = ['Player', 'Team', 'League', 'Season', 'Goals', 'Assists', 'G+A', 'Contribution %', 'Games']
 

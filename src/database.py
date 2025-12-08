@@ -310,19 +310,80 @@ def get_elo_ratings():
     return pd.DataFrame(response.data)
 
     
-def get_elo_match_history(league=None):
-    """Query ELO match history for incremental processing."""
+def get_elo_match_history(league=None, team=None):
+    """Query ELO match history with pagination."""
     client = get_db()
     
-    query = client.table("elo_match_history").select("*")
+    all_data = []
+    page_size = 1000
+    offset = 0
     
-    if league:
-        query = query.eq("league", league)
+    while True:
+        query = client.table("elo_match_history").select("*")
+        
+        if league:
+            query = query.eq("league", league)
+        
+        # Filter by team (either home or away) - done client-side after fetch
+        
+        query = query.order("date").range(offset, offset + page_size - 1)
+        response = query.execute()
+        
+        if not response.data:
+            break
+            
+        all_data.extend(response.data)
+        
+        if len(response.data) < page_size:
+            break
+            
+        offset += page_size
     
-    query = query.order("date")
+    df = pd.DataFrame(all_data)
     
-    response = query.execute()
-    return pd.DataFrame(response.data)
+    # Filter by team if specified
+    if team and len(df) > 0:
+        df = df[(df['home_team'] == team) | (df['away_team'] == team)]
+    
+    return df
+
+
+def get_team_elo_history(team=None, league=None):
+    """
+    Get ELO history transformed into per-team rows with match numbers.
+    Returns one row per team per match with their rating after that match.
+    """
+    df = get_elo_match_history(league=league, team=team)
+    
+    if len(df) == 0:
+        return pd.DataFrame()
+    
+    # Create separate rows for home and away teams
+    home_rows = df[['date', 'season', 'league', 'home_team', 'home_elo_after', 'away_team', 'fthg', 'ftag', 'result']].copy()
+    home_rows.columns = ['date', 'season', 'league', 'team', 'elo_rating', 'opponent', 'goals_for', 'goals_against', 'result']
+    home_rows['venue'] = 'H'
+    home_rows['team_result'] = home_rows['result'].map({'H': 'W', 'A': 'L', 'D': 'D'})
+    
+    away_rows = df[['date', 'season', 'league', 'away_team', 'away_elo_after', 'home_team', 'ftag', 'fthg', 'result']].copy()
+    away_rows.columns = ['date', 'season', 'league', 'team', 'elo_rating', 'opponent', 'goals_for', 'goals_against', 'result']
+    away_rows['venue'] = 'A'
+    away_rows['team_result'] = away_rows['result'].map({'H': 'L', 'A': 'W', 'D': 'D'})
+    
+    # Combine and sort
+    combined = pd.concat([home_rows, away_rows], ignore_index=True)
+    combined = combined.sort_values(['team', 'date']).reset_index(drop=True)
+    
+    # Add match number per team (cumulative count across all seasons)
+    combined['match_number'] = combined.groupby('team').cumcount() + 1
+    
+    # Add season match number (resets to 1 each season)
+    combined['season_match_number'] = combined.groupby(['team', 'season']).cumcount() + 1
+    
+    # Filter to specific team if requested
+    if team:
+        combined = combined[combined['team'] == team]
+    
+    return combined
 
 
 def get_last_processed_match_date():

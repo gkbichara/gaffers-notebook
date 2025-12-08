@@ -7,7 +7,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 from src.database import get_team_stats
-from src.config import LEAGUE_DISPLAY_NAMES, CURRENT_SEASON, SEASONS, PLOTLY_COLOR_SEQUENCE
+from src.config import LEAGUE_DISPLAY_NAMES, CURRENT_SEASON, SEASONS, PLOTLY_COLOR_SEQUENCE, SEASON_DISPLAY_NAMES, SEASON_CODES
 
 st.set_page_config(
     page_title="YoY Differentials | Gaffer's Notebook",
@@ -35,12 +35,15 @@ if len(team_stats_df) == 0:
 # Add display names
 team_stats_df['league_display'] = team_stats_df['league'].map(LEAGUE_DISPLAY_NAMES)
 
+# Get current season display name
+CURRENT_SEASON_DISPLAY = SEASON_DISPLAY_NAMES.get(CURRENT_SEASON, CURRENT_SEASON)
+
 # Handle reset
 if "reset_yoy_filters" in st.session_state and st.session_state["reset_yoy_filters"]:
     st.session_state["reset_yoy_filters"] = False
     st.session_state["yoy_league"] = None
     st.session_state["yoy_teams"] = []
-    st.session_state["yoy_seasons"] = [CURRENT_SEASON]
+    st.session_state["yoy_seasons"] = [CURRENT_SEASON_DISPLAY]
 
 # --- Filters ---
 col1, col2, col3, col4 = st.columns([1, 2, 1, 0.5])
@@ -63,23 +66,33 @@ with col2:
     else:
         available_teams = sorted(team_stats_df['team_name'].unique().tolist())
     
+    # Default to Roma if no selection yet
+    default_teams = []
+    if "yoy_teams" not in st.session_state and "Roma" in available_teams:
+        default_teams = ["Roma"]
+    
     selected_teams = st.multiselect(
         "Teams (max 3)",
         options=available_teams,
+        default=default_teams,
         max_selections=3,
         placeholder="Select teams...",
         key="yoy_teams"
     )
 
 with col3:
-    # Season multiselect
-    available_seasons = sorted(team_stats_df['season'].unique().tolist(), reverse=True)
-    selected_seasons = st.multiselect(
+    # Season multiselect (using display names)
+    available_season_codes = sorted(team_stats_df['season'].unique().tolist())
+    available_seasons_display = [SEASON_DISPLAY_NAMES.get(s, s) for s in available_season_codes]
+    
+    selected_seasons_display = st.multiselect(
         "Seasons",
-        options=available_seasons,
-        default=[CURRENT_SEASON] if CURRENT_SEASON in available_seasons else [],
+        options=available_seasons_display,
+        default=[CURRENT_SEASON_DISPLAY] if CURRENT_SEASON_DISPLAY in available_seasons_display else [],
         key="yoy_seasons"
     )
+    # Convert back to codes for filtering
+    selected_seasons = [SEASON_CODES.get(s, s) for s in selected_seasons_display]
 
 with col4:
     st.write("")
@@ -108,15 +121,16 @@ if len(filtered_df) == 0:
     st.warning("No data found for selected filters")
     st.stop()
 
-# Create label for chart legend
-filtered_df['label'] = filtered_df['team_name'] + ' (' + filtered_df['season'] + ')'
+# Create label for chart legend (using display names)
+filtered_df['season_display'] = filtered_df['season'].map(SEASON_DISPLAY_NAMES)
+filtered_df['label'] = filtered_df['team_name'] + ' (' + filtered_df['season_display'] + ')'
 
 # Create stable color mapping based on selection order
 # This ensures colors don't change when adding new teams
 labels_in_order = []
 for team in selected_teams:
-    for season in selected_seasons:
-        label = f"{team} ({season})"
+    for season_display in selected_seasons_display:
+        label = f"{team} ({season_display})"
         if label in filtered_df['label'].values:
             labels_in_order.append(label)
 
@@ -159,7 +173,7 @@ st.subheader("Match-by-Match Details")
 
 # Show table for each team/season combo
 for team in selected_teams:
-    for season in selected_seasons:
+    for season, season_display in zip(selected_seasons, selected_seasons_display):
         team_season_df = filtered_df[
             (filtered_df['team_name'] == team) & 
             (filtered_df['season'] == season)
@@ -168,7 +182,7 @@ for team in selected_teams:
         if len(team_season_df) == 0:
             continue
         
-        st.markdown(f"**{team}** ({season})")
+        st.markdown(f"**{team}** ({season_display})")
         
         # Prepare display dataframe
         display_df = team_season_df[[
@@ -214,9 +228,9 @@ for team in selected_teams:
             return ''
         
         # Apply styling
-        styled_df = display_df.style.applymap(
+        styled_df = display_df.style.map(
             color_cumulative, subset=['Cumulative']
-        ).applymap(
+        ).map(
             color_diff, subset=['Diff']
         ).format({
             'Diff': lambda x: f"+{x:.0f}" if x > 0 else f"{x:.0f}",
