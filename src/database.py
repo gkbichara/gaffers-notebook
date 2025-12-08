@@ -360,3 +360,33 @@ def get_matches_for_analysis(league, season):
     
     df = df.rename(columns=column_map)
     return df
+
+
+def get_team_stats(league=None, season=None):
+    """Query team stats (YoY differentials) from Supabase."""
+    client = get_db()
+    
+    query = client.table("team_stats").select("*")
+    
+    if league:
+        query = query.eq('league', league)
+    if season:
+        query = query.eq('season', season)
+    
+    response = query.execute()
+    return pd.DataFrame(response.data)
+
+
+def get_player_stats(league=None, season=None):
+    """Query player stats from Supabase."""
+    client = get_db()
+    
+    query = client.table("player_stats").select("*")
+    
+    if league:
+        query = query.eq('league', league)
+    if season:
+        query = query.eq('season', season)
+    
+    response = query.execute()
+    return pd.DataFrame(response.data)
