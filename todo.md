@@ -16,50 +16,54 @@ All phases complete. Supabase is now the single source of truth.
 
 ## 🚀 CURRENT: Streamlit Dashboard
 
-**Goal:** Build an interactive web app to visualize ELO rankings, YoY differentials, and player stats.
+> **Design Principle:** Design for the end state, iterate towards it — not through disposable versions.
+> Build the architecture that supports future growth from day one.
 
-### Step 1: Setup (Do First)
-```bash
-pip install streamlit plotly
-echo "streamlit" >> requirements.txt
-echo "plotly" >> requirements.txt
+**Final Vision:** Multi-page analytics dashboard with ELO, YoY, player stats, and future xG/advanced metrics.
+
+### Target Architecture
+```
+gaffers-notebook/
+├── app.py                      ← Home/Overview (landing page)
+├── pages/
+│   ├── 1_ELO_Rankings.py       ← Cross-league leaderboard
+│   ├── 2_ELO_History.py        ← Team rating progression over time
+│   ├── 3_YoY_Differentials.py  ← Cumulative differential charts
+│   ├── 4_Player_Stats.py       ← Contributions, top scorers
+│   └── (future: xG, opponent difficulty, predictions)
+└── src/
+    └── database.py             ← Shared data layer (already exists)
 ```
 
-Create `app.py` in project root (Streamlit convention).
+### Build Order (iterate towards final vision)
 
-### Step 2: Core Pages to Build
+**Phase 1: Foundation**
+- [ ] Create `app.py` (home page with overview/navigation)
+- [ ] Create `pages/` directory
+- [ ] Add streamlit + plotly to requirements.txt
 
-**Page 1: ELO Leaderboard**
-- Query `elo_ratings` table from Supabase
-- Display sortable table: Rank, Team, League, ELO, Matches Played
-- Add league filter dropdown
-- Use existing `get_elo_ratings()` from `src/database.py`
+**Phase 2: Core Pages**
+- [ ] `1_ELO_Rankings.py` — Query `elo_ratings`, sortable table, league filter
+- [ ] `2_ELO_History.py` — Query `elo_match_history`, line chart per team
+- [ ] `3_YoY_Differentials.py` — Query `team_stats`, cumulative line chart
+- [ ] `4_Player_Stats.py` — Query `player_stats`, top contributors table
 
-**Page 2: YoY Differentials**
-- Query `team_stats` table from Supabase
-- Line chart: Cumulative differential over match number
-- Team selector dropdown
-- Season selector (default: current 2526)
+**Phase 3: Polish & Deploy**
+- [ ] Add consistent styling/theme across pages
+- [ ] Add caching with `@st.cache_data` for DB queries
+- [ ] Deploy to Streamlit Cloud (free for public apps)
+- [ ] Add secrets: SUPABASE_URL, SUPABASE_KEY
 
-**Page 3: ELO History (Optional)**
-- Query `elo_match_history` for a specific team
-- Show rating progression over time
-
-### Step 3: Supabase Connection
+### Supabase Connection Pattern
 ```python
-# In app.py, reuse existing database.py
-from src.database import get_db, get_elo_ratings
+# Reuse existing database.py functions
+from src.database import get_elo_ratings, get_raw_matches
 
-# Or use st.connection for caching:
-# https://docs.streamlit.io/develop/api-reference/connections
+# Add caching in Streamlit:
+@st.cache_data(ttl=3600)  # Cache for 1 hour
+def load_elo_ratings():
+    return get_elo_ratings()
 ```
-
-### Step 4: Deploy to Streamlit Cloud
-1. Push `app.py` to GitHub
-2. Go to share.streamlit.io
-3. Connect repo, set main file to `app.py`
-4. Add secrets: SUPABASE_URL, SUPABASE_KEY
-5. Deploy (free for public apps)
 
 ### Reference: Database Tables Available
 | Table | Key Columns | Use For |
