@@ -1,5 +1,4 @@
 import os
-import pandas as pd
 
 from src.scrapers.matches import main as run_scraper
 from src.analysis.teams import analyze_league, save_league_results, get_latest_standings
@@ -12,7 +11,7 @@ from src.config import (
     DATA_DIR,
     SEASONS,
 )
-from src.database import update_player_stats, update_team_stats
+from src.database import update_player_stats, update_team_stats, get_matches_for_analysis
 
 def main():
     print("="*60)
@@ -34,7 +33,7 @@ def main():
         # 2a. Incremental ELO (uses database)
         run_incremental_elo()
 
-        # 2b. YoY Analysis (Compare adjacent seasons)
+        # 2b. YoY Analysis (Compare adjacent seasons, using DB)
         print("\n--- Running YoY Differentials ---")
         for season_idx in range(1, len(SEASONS)):
             prev_season = SEASONS[season_idx - 1]
@@ -43,16 +42,14 @@ def main():
 
             for idx, league_key in enumerate(LEAGUE_KEYS, 1):
                 league_info = LEAGUES[league_key]
-                display_name = league_info['display_name']
                 folder = league_info['folder']
                 league_path = os.path.join(DATA_DIR, folder)
-                prev_path = os.path.join(league_path, f"{prev_season}.csv")
-                cur_path = os.path.join(league_path, f"{cur_season}.csv")
 
-                try:
-                    prev_df = pd.read_csv(prev_path)
-                    cur_df = pd.read_csv(cur_path)
-                except FileNotFoundError:
+                # Query from database
+                prev_df = get_matches_for_analysis(league_key, prev_season)
+                cur_df = get_matches_for_analysis(league_key, cur_season)
+                
+                if len(prev_df) == 0 or len(cur_df) == 0:
                     continue
 
                 results_df = analyze_league(cur_df, prev_df)

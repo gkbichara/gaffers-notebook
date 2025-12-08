@@ -334,3 +334,29 @@ def get_last_processed_match_date():
     if response.data:
         return response.data[0]['date']
     return None
+
+
+def get_matches_for_analysis(league, season):
+    """
+    Get match data formatted for analysis functions.
+    
+    Returns DataFrame with columns matching the analysis expectations:
+    Date, HomeTeam, AwayTeam, FTHG, FTAG, FTR
+    """
+    df = get_raw_matches(league=league, season=season)
+    
+    if len(df) == 0:
+        return df
+    
+    # Rename columns to match analysis expectations
+    column_map = {
+        'date': 'Date',
+        'home_team': 'HomeTeam',
+        'away_team': 'AwayTeam',
+        'fthg': 'FTHG',
+        'ftag': 'FTAG',
+        'ftr': 'FTR',
+    }
+    
+    df = df.rename(columns=column_map)
+    return df

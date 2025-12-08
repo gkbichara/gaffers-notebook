@@ -2,8 +2,9 @@ from pathlib import Path
 
 import pandas as pd
 
-from src import analysis, config
-from src.analysis import compare_seasons, save_league_results
+from src.analysis import teams as analysis
+from src.analysis.teams import compare_seasons, save_league_results
+from src import config
 from src.config import CURRENT_SEASON
 
 
