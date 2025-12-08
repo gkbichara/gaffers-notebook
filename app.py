@@ -11,12 +11,11 @@ from src.config import CURRENT_SEASON, LEAGUE_DISPLAY_NAMES
 # Page config
 st.set_page_config(
     page_title="Gaffer's Notebook",
-    page_icon="⚽",
     layout="wide"
 )
 
 # Title
-st.title("⚽ Gaffer's Notebook")
+st.title("Gaffer's Notebook")
 st.markdown("**European Football Intelligence** — ELO ratings, YoY performance, and player analytics across the Top 5 leagues.")
 
 st.divider()
@@ -44,7 +43,7 @@ team_stats_df = load_team_stats()
 player_stats_df = load_player_stats()
 
 # --- ELO Rankings Section ---
-st.header("🏆 ELO Rankings")
+st.header("ELO Rankings")
 
 col1, col2 = st.columns(2)
 
@@ -56,7 +55,7 @@ with col1:
         top_5.columns = ['Team', 'League', 'ELO', 'Matches']
         top_5 = top_5.reset_index(drop=True)
         top_5.index = top_5.index + 1
-        st.dataframe(top_5, use_container_width=True)
+        st.dataframe(top_5, width='stretch')
     else:
         st.info("No ELO data available")
 
@@ -68,14 +67,14 @@ with col2:
         bottom_5.columns = ['Team', 'League', 'ELO', 'Matches']
         bottom_5 = bottom_5.reset_index(drop=True)
         bottom_5.index = bottom_5.index + 1
-        st.dataframe(bottom_5, use_container_width=True)
+        st.dataframe(bottom_5, width='stretch')
     else:
         st.info("No ELO data available")
 
 st.divider()
 
 # --- YoY Performance Section ---
-st.header("📊 Season Performance (YoY)")
+st.header("Season Performance (YoY)")
 
 col3, col4 = st.columns(2)
 
@@ -90,7 +89,7 @@ with col3:
         top_performers = top_performers.reset_index(drop=True)
         top_performers.index = top_performers.index + 1
         top_performers['Differential'] = top_performers['Differential'].apply(lambda x: f"+{x:.0f}" if x > 0 else f"{x:.0f}")
-        st.dataframe(top_performers, use_container_width=True)
+        st.dataframe(top_performers, width='stretch')
     else:
         st.info("No YoY data available")
 
@@ -104,7 +103,7 @@ with col4:
         bottom_performers = bottom_performers.reset_index(drop=True)
         bottom_performers.index = bottom_performers.index + 1
         bottom_performers['Differential'] = bottom_performers['Differential'].apply(lambda x: f"+{x:.0f}" if x > 0 else f"{x:.0f}")
-        st.dataframe(bottom_performers, use_container_width=True)
+        st.dataframe(bottom_performers, width='stretch')
     else:
         st.info("No YoY data available")
 
@@ -122,14 +121,14 @@ if len(player_stats_df) > 0:
     top_players = top_players.reset_index(drop=True)
     top_players.index = top_players.index + 1
     top_players['Contribution %'] = top_players['Contribution %'].apply(lambda x: f"{x:.1f}%")
-    st.dataframe(top_players, use_container_width=True)
+    st.dataframe(top_players, width='stretch')
 else:
     st.info("No player data available")
 
 st.divider()
 
 # --- Quick Stats ---
-st.header("📈 Quick Stats")
+st.header("Quick Stats")
 
 col5, col6, col7, col8 = st.columns(4)
 
@@ -156,4 +155,4 @@ with col8:
 
 # Footer
 st.divider()
-st.caption(f"Data updated daily. Current season: {CURRENT_SEASON}")
+st.caption(f"Data: football-data.co.uk & Understat.com | Season: {CURRENT_SEASON}")

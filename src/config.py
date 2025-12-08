@@ -67,3 +67,16 @@ LOGS_DIR = 'logs'
 # External API URLs
 FBDATA_BASE_URL = "https://www.football-data.co.uk/mmz4281"
 UNDERSTAT_BASE_URL = "https://understat.com/league/"
+
+# Chart color palette (consistent across dashboard)
+CHART_COLORS = {
+    'primary': '#1f77b4',      # Blue
+    'secondary': '#2ca02c',    # Green
+    'accent': '#ff7f0e',       # Orange
+    'positive': '#2ca02c',     # Green (for positive values)
+    'negative': '#d62728',     # Red (for negative values)
+    'neutral': '#7f7f7f',      # Gray
+}
+
+# Plotly color sequence for multi-line charts
+PLOTLY_COLOR_SEQUENCE = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']

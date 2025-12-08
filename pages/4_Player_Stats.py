@@ -8,15 +8,14 @@ import unicodedata
 from streamlit_searchbox import st_searchbox
 
 from src.database import get_player_stats
-from src.config import LEAGUE_DISPLAY_NAMES, CURRENT_SEASON
+from src.config import LEAGUE_DISPLAY_NAMES, CURRENT_SEASON, CHART_COLORS
 
 st.set_page_config(
     page_title="Player Stats | Gaffer's Notebook",
-    page_icon="⚽",
     layout="wide"
 )
 
-st.title("⚽ Player Stats")
+st.title("Player Stats")
 st.markdown("Top contributors by goals, assists, and overall contribution to team goals.")
 
 st.divider()
@@ -208,7 +207,7 @@ with col_selected:
             with col_name:
                 st.write(f"{i+1}. {player}")
             with col_btn:
-                if st.button("✕", key=f"remove_{i}_{player}"):
+                if st.button("X", key=f"remove_{i}_{player}"):
                     st.session_state["selected_players_list"].remove(player)
                     st.session_state["skip_add_player"] = True
                     # Clear searchbox to prevent re-add
@@ -252,7 +251,7 @@ if selected_players:
             x=chart_df['goals_pct'],
             name='Goals %',
             orientation='h',
-            marker_color='#2ecc71',
+            marker_color=CHART_COLORS['secondary'],
             text=chart_df['goals_pct'].apply(lambda x: f"{x:.1f}%"),
             textposition='inside'
         ))
@@ -263,7 +262,7 @@ if selected_players:
             x=chart_df['assists_pct'],
             name='Assists %',
             orientation='h',
-            marker_color='#3498db',
+            marker_color=CHART_COLORS['primary'],
             text=chart_df['assists_pct'].apply(lambda x: f"{x:.1f}%"),
             textposition='inside'
         ))
@@ -277,7 +276,7 @@ if selected_players:
             margin=dict(l=200)
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
         
         # Comparison table for selected players
         st.markdown("**Comparison Details**")
@@ -296,7 +295,7 @@ if selected_players:
             'Games': '{:.0f}'
         })
         
-        st.dataframe(styled_comparison, use_container_width=True, hide_index=True)
+        st.dataframe(styled_comparison, width='stretch', hide_index=True)
 
 st.divider()
 
@@ -325,7 +324,7 @@ styled_df = display_df.style.format({
 
 st.dataframe(
     styled_df,
-    use_container_width=True,
+    width='stretch',
     hide_index=True,
     height=500
 )
@@ -356,3 +355,7 @@ with col3:
 with col4:
     if highest_pct is not None:
         st.metric("Highest Impact", f"{highest_pct['Player']}", f"{highest_pct['Contribution %']:.1f}% of team goals")
+
+# Footer
+st.divider()
+st.caption("Data: football-data.co.uk & Understat.com")

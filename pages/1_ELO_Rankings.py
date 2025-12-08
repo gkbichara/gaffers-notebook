@@ -9,11 +9,10 @@ from src.config import LEAGUE_DISPLAY_NAMES
 
 st.set_page_config(
     page_title="ELO Rankings | Gaffer's Notebook",
-    page_icon="🏆",
     layout="wide"
 )
 
-st.title("🏆 ELO Rankings")
+st.title("ELO Rankings")
 st.markdown("Cross-league team rankings based on match results. Higher ELO = stronger team.")
 
 st.divider()
@@ -100,7 +99,7 @@ display_df['ELO Rating'] = display_df['ELO Rating'].apply(lambda x: f"{x:.0f}")
 # Display with nice formatting
 st.dataframe(
     display_df,
-    use_container_width=True,
+    width='stretch',
     hide_index=True,
     column_config={
         "Rank": st.column_config.NumberColumn(width="small"),
@@ -130,4 +129,8 @@ if selected_display:
     other_rows = league_stats[league_stats['League'] != selected_display]
     league_stats = pd.concat([selected_row, other_rows], ignore_index=True)
 
-st.dataframe(league_stats, use_container_width=True, hide_index=True)
+st.dataframe(league_stats, width='stretch', hide_index=True)
+
+# Footer
+st.divider()
+st.caption("Data: football-data.co.uk")

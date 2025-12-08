@@ -7,15 +7,14 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 from src.database import get_team_stats
-from src.config import LEAGUE_DISPLAY_NAMES, CURRENT_SEASON, SEASONS
+from src.config import LEAGUE_DISPLAY_NAMES, CURRENT_SEASON, SEASONS, PLOTLY_COLOR_SEQUENCE
 
 st.set_page_config(
     page_title="YoY Differentials | Gaffer's Notebook",
-    page_icon="📊",
     layout="wide"
 )
 
-st.title("📊 YoY Differentials")
+st.title("YoY Differentials")
 st.markdown("Compare team performance against the same fixtures from last season.")
 
 st.divider()
@@ -92,7 +91,7 @@ with col4:
 
 # Check if we have selections
 if not selected_teams:
-    st.info("👆 Select a league and team(s) to view their YoY performance")
+    st.info("Select a league and team(s) to view their YoY performance")
     st.stop()
 
 if not selected_seasons:
@@ -112,6 +111,18 @@ if len(filtered_df) == 0:
 # Create label for chart legend
 filtered_df['label'] = filtered_df['team_name'] + ' (' + filtered_df['season'] + ')'
 
+# Create stable color mapping based on selection order
+# This ensures colors don't change when adding new teams
+labels_in_order = []
+for team in selected_teams:
+    for season in selected_seasons:
+        label = f"{team} ({season})"
+        if label in filtered_df['label'].values:
+            labels_in_order.append(label)
+
+color_map = {label: PLOTLY_COLOR_SEQUENCE[i % len(PLOTLY_COLOR_SEQUENCE)] 
+             for i, label in enumerate(labels_in_order)}
+
 st.divider()
 
 # --- Line Chart ---
@@ -123,6 +134,7 @@ fig = px.line(
     y='cumulative_differential',
     color='label',
     markers=True,
+    color_discrete_map=color_map,
     labels={
         'match_number': 'Match Number',
         'cumulative_differential': 'Cumulative Differential',
@@ -138,7 +150,7 @@ fig.update_layout(
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
 )
 
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, width='stretch')
 
 st.divider()
 
@@ -211,5 +223,9 @@ for team in selected_teams:
             'Cumulative': lambda x: f"+{x:.0f}" if x > 0 else f"{x:.0f}"
         })
         
-        st.dataframe(styled_df, use_container_width=True, hide_index=True)
+        st.dataframe(styled_df, width='stretch', hide_index=True)
         st.write("")  # Spacing between tables
+
+# Footer
+st.divider()
+st.caption("Data: football-data.co.uk")

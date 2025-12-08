@@ -50,8 +50,8 @@ gaffers-notebook/
 **Phase 3: Polish & Deploy**
 - [x] Add caching with `@st.cache_data` for DB queries
 - [ ] Add consistent styling/theme across pages
-- [ ] Deploy to Streamlit Cloud (free for public apps)
-- [ ] Add secrets: SUPABASE_URL, SUPABASE_KEY
+- [x] Deploy to Streamlit Cloud (free for public apps)
+- [x] Add secrets: SUPABASE_URL, SUPABASE_KEY
 
 ### Supabase Connection Pattern
 ```python
