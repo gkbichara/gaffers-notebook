@@ -363,30 +363,64 @@ def get_matches_for_analysis(league, season):
 
 
 def get_team_stats(league=None, season=None):
-    """Query team stats (YoY differentials) from Supabase."""
+    """Query team stats (YoY differentials) from Supabase with pagination."""
     client = get_db()
     
-    query = client.table("team_stats").select("*")
+    all_data = []
+    page_size = 1000
+    offset = 0
     
-    if league:
-        query = query.eq('league', league)
-    if season:
-        query = query.eq('season', season)
+    while True:
+        query = client.table("team_stats").select("*")
+        
+        if league:
+            query = query.eq('league', league)
+        if season:
+            query = query.eq('season', season)
+        
+        query = query.range(offset, offset + page_size - 1)
+        response = query.execute()
+        
+        if not response.data:
+            break
+            
+        all_data.extend(response.data)
+        
+        if len(response.data) < page_size:
+            break
+            
+        offset += page_size
     
-    response = query.execute()
-    return pd.DataFrame(response.data)
+    return pd.DataFrame(all_data)
 
 
 def get_player_stats(league=None, season=None):
-    """Query player stats from Supabase."""
+    """Query player stats from Supabase with pagination."""
     client = get_db()
     
-    query = client.table("player_stats").select("*")
+    all_data = []
+    page_size = 1000
+    offset = 0
     
-    if league:
-        query = query.eq('league', league)
-    if season:
-        query = query.eq('season', season)
+    while True:
+        query = client.table("player_stats").select("*")
+        
+        if league:
+            query = query.eq('league', league)
+        if season:
+            query = query.eq('season', season)
+        
+        query = query.range(offset, offset + page_size - 1)
+        response = query.execute()
+        
+        if not response.data:
+            break
+            
+        all_data.extend(response.data)
+        
+        if len(response.data) < page_size:
+            break
+            
+        offset += page_size
     
-    response = query.execute()
-    return pd.DataFrame(response.data)
+    return pd.DataFrame(all_data)
