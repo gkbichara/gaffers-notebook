@@ -56,6 +56,11 @@ if "reset_player_filters" in st.session_state and st.session_state["reset_player
     st.session_state["selected_players_list"] = []
     st.session_state["player_min_games"] = 1
     st.session_state["player_min_contributions"] = 0
+    st.session_state["skip_add_player"] = True  # Skip adding on this rerun
+    # Clear searchbox state
+    for key in list(st.session_state.keys()):
+        if "searchbox" in key:
+            del st.session_state[key]
 
 # --- Filters Row 1 ---
 col1, col2, col3, col4, col5, col6 = st.columns([1, 1, 1.5, 1, 1, 0.5])
@@ -160,13 +165,17 @@ player_normalized_map = {name: normalize_text(name) for name in all_players}
 
 def search_players(search_term: str) -> list:
     """Search players with accent-insensitive matching."""
+    already_selected = st.session_state.get("selected_players_list", [])
+    
     if not search_term:
-        return []
+        # Show first 20 available players when no search term
+        available = [name for name in all_players if name not in already_selected]
+        return sorted(available)[:20]
     
     search_normalized = normalize_text(search_term)
     matches = [
         name for name, normalized in player_normalized_map.items()
-        if search_normalized in normalized and name not in st.session_state["selected_players_list"]
+        if search_normalized in normalized and name not in already_selected
     ]
     return sorted(matches)[:20]  # Limit to 20 results
 
@@ -181,8 +190,9 @@ with col_search:
         clear_on_submit=True
     )
     
-    # Add player to list when selected
-    if selected_player and selected_player not in st.session_state["selected_players_list"]:
+    # Add player to list when selected (skip if just reset)
+    skip_add = st.session_state.pop("skip_add_player", False)
+    if not skip_add and selected_player and selected_player not in st.session_state["selected_players_list"]:
         if len(st.session_state["selected_players_list"]) < 10:
             st.session_state["selected_players_list"].append(selected_player)
             st.rerun()
@@ -193,13 +203,18 @@ with col_selected:
     st.markdown("**Selected Players:**")
     if st.session_state["selected_players_list"]:
         # Display selected players with remove buttons
-        for i, player in enumerate(st.session_state["selected_players_list"]):
+        for i, player in enumerate(list(st.session_state["selected_players_list"])):
             col_name, col_btn = st.columns([4, 1])
             with col_name:
                 st.write(f"{i+1}. {player}")
             with col_btn:
-                if st.button("✕", key=f"remove_{i}"):
+                if st.button("✕", key=f"remove_{i}_{player}"):
                     st.session_state["selected_players_list"].remove(player)
+                    st.session_state["skip_add_player"] = True
+                    # Clear searchbox to prevent re-add
+                    for key in list(st.session_state.keys()):
+                        if "searchbox" in key:
+                            del st.session_state[key]
                     st.rerun()
     else:
         st.caption("No players selected. Search and click to add.")
@@ -211,47 +226,77 @@ if selected_players:
     st.divider()
     st.subheader("Contribution Breakdown")
     
-    # Get data for selected players
-    chart_df = filtered_df[filtered_df['player_name'].isin(selected_players)].copy()
+    # Get data for selected players from FULL dataset (not filtered)
+    # Filter only by season to compare players in same timeframe
+    chart_base_df = player_stats_df.copy()
+    if selected_season:
+        chart_base_df = chart_base_df[chart_base_df['season'] == selected_season]
     
-    # Sort by total contribution
-    chart_df = chart_df.sort_values('contribution_pct', ascending=True)
+    chart_df = chart_base_df[chart_base_df['player_name'].isin(selected_players)].copy()
     
-    # Create stacked horizontal bar chart
-    fig = go.Figure()
-    
-    # Goals portion
-    fig.add_trace(go.Bar(
-        y=chart_df['player_name'],
-        x=chart_df['goals_pct'],
-        name='Goals %',
-        orientation='h',
-        marker_color='#2ecc71',
-        text=chart_df['goals_pct'].apply(lambda x: f"{x:.1f}%"),
-        textposition='inside'
-    ))
-    
-    # Assists portion
-    fig.add_trace(go.Bar(
-        y=chart_df['player_name'],
-        x=chart_df['assists_pct'],
-        name='Assists %',
-        orientation='h',
-        marker_color='#3498db',
-        text=chart_df['assists_pct'].apply(lambda x: f"{x:.1f}%"),
-        textposition='inside'
-    ))
-    
-    fig.update_layout(
-        barmode='stack',
-        height=max(300, len(selected_players) * 50),
-        xaxis_title="% of Team Goals",
-        yaxis_title="",
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        margin=dict(l=150)
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
+    if len(chart_df) == 0:
+        st.warning("No data found for selected players in this season")
+    else:
+        # Add team to player name for chart label
+        chart_df['label'] = chart_df['player_name'] + ' (' + chart_df['team'] + ')'
+        
+        # Sort by total contribution
+        chart_df = chart_df.sort_values('contribution_pct', ascending=True)
+        
+        # Create stacked horizontal bar chart
+        fig = go.Figure()
+        
+        # Goals portion
+        fig.add_trace(go.Bar(
+            y=chart_df['label'],
+            x=chart_df['goals_pct'],
+            name='Goals %',
+            orientation='h',
+            marker_color='#2ecc71',
+            text=chart_df['goals_pct'].apply(lambda x: f"{x:.1f}%"),
+            textposition='inside'
+        ))
+        
+        # Assists portion
+        fig.add_trace(go.Bar(
+            y=chart_df['label'],
+            x=chart_df['assists_pct'],
+            name='Assists %',
+            orientation='h',
+            marker_color='#3498db',
+            text=chart_df['assists_pct'].apply(lambda x: f"{x:.1f}%"),
+            textposition='inside'
+        ))
+        
+        fig.update_layout(
+            barmode='stack',
+            height=max(300, len(chart_df) * 50),
+            xaxis_title="% of Team Goals",
+            yaxis_title="",
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            margin=dict(l=200)
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Comparison table for selected players
+        st.markdown("**Comparison Details**")
+        comparison_df = chart_df[[
+            'player_name', 'team', 'league_display', 
+            'goals', 'assists', 'contributions', 'contribution_pct', 'games_played'
+        ]].copy()
+        comparison_df.columns = ['Player', 'Team', 'League', 'Goals', 'Assists', 'G+A', 'Contribution %', 'Games']
+        comparison_df = comparison_df.sort_values('G+A', ascending=False)
+        
+        styled_comparison = comparison_df.style.format({
+            'Contribution %': '{:.1f}%',
+            'Goals': '{:.0f}',
+            'Assists': '{:.0f}',
+            'G+A': '{:.0f}',
+            'Games': '{:.0f}'
+        })
+        
+        st.dataframe(styled_comparison, use_container_width=True, hide_index=True)
 
 st.divider()
 
