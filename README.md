@@ -60,11 +60,16 @@ The pipeline maintains **cross-league ELO ratings** for all teams:
 
 ```
 gaffers-notebook/
+├── app.py                 # Streamlit dashboard home page
+├── pages/                 # Streamlit multi-page app
+│   ├── 1_ELO_Rankings.py
+│   ├── 3_YoY_Differentials.py
+│   └── 4_Player_Stats.py
 ├── src/
 │   ├── __init__.py
 │   ├── main.py              # Pipeline orchestrator
 │   ├── config.py            # Centralized configuration (leagues, paths, constants)
-│   ├── database.py          # Supabase upload helpers
+│   ├── database.py          # Supabase query/upload helpers
 │   ├── scrapers/            # Data Extraction
 │   │   ├── __init__.py
 │   │   ├── matches.py       # Data fetching from football-data.co.uk
@@ -379,12 +384,14 @@ The `run_update.sh` script:
 
 ## 🎯 Key Features
 
+✅ **Streamlit Dashboard** - Interactive multi-page analytics with charts and filters  
 ✅ **Database-First Architecture** - Supabase is the single source of truth  
 ✅ **Cross-League ELO Ratings** - Track team strength with incremental updates  
 ✅ **Multi-League Coverage** - Analyzes all Top 5 European leagues  
 ✅ **Match-by-Match Tracking** - See progression through the season  
 ✅ **Fair Comparisons** - Same opponent, same venue only  
 ✅ **Player Contribution Analysis** - Track individual player impact across all leagues  
+✅ **Accent-Insensitive Search** - Find players like "Soulè" by typing "Soule"  
 ✅ **Automated Data Fetching** - Built-in scrapers for football-data.co.uk and Understat  
 ✅ **GitHub Actions Automation** - Daily updates run automatically on GitHub servers  
 ✅ **28 Unit Tests** - Comprehensive test coverage for database and ELO logic  
@@ -393,16 +400,41 @@ The `run_update.sh` script:
 
 ---
 
+## 📊 Streamlit Dashboard
+
+The project includes an interactive **Streamlit dashboard** for exploring all the data:
+
+```bash
+# Run locally
+streamlit run app.py
+```
+
+### Pages
+
+| Page | Description |
+|------|-------------|
+| **Home** | Overview with top/bottom ELO teams, biggest over/underperformers, top player contributions |
+| **ELO Rankings** | Cross-league leaderboard with league/team filters |
+| **YoY Differentials** | Compare up to 3 teams' cumulative differential with line charts and heatmap tables |
+| **Player Stats** | Compare up to 10 players with accent-insensitive search, stacked bar charts showing goals/assists % |
+
+### Features
+- 🔍 **Accent-insensitive search** — Find "Soulè" by typing "Soule"
+- 📊 **Interactive charts** — Plotly-powered visualizations
+- 🔄 **Cached queries** — Fast loading with `@st.cache_data`
+- 🎯 **Cascading filters** — League → Team → Player
+
+---
+
 ## 🔮 Coming Soon
 
-- 📊 Visualization dashboard with line plots and bar charts
-- 🌐 Interactive web interface with team/league filters
+- 📈 **ELO History** — Team rating progression over time (pending gameweek data)
 - 📈 Additional metrics (xG comparison, goal differential trends)
 - 👥 Player YoY comparison (season-over-season contributions)
-- 📱 Mobile-friendly dashboard
 - 🐦 Automated Twitter/X posts with weekly summaries
 - 📧 Email notifications for significant changes
 - 🎨 Player heatmaps and position-based analytics
+- ☁️ Streamlit Cloud deployment
 
 ---
 

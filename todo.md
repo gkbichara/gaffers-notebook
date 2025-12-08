@@ -14,43 +14,42 @@ All phases complete. Supabase is now the single source of truth.
 
 ---
 
-## 🚀 CURRENT: Streamlit Dashboard
+## ✅ Streamlit Dashboard — IN PROGRESS
 
 > **Design Principle:** Design for the end state, iterate towards it — not through disposable versions.
-> Build the architecture that supports future growth from day one.
 
-**Final Vision:** Multi-page analytics dashboard with ELO, YoY, player stats, and future xG/advanced metrics.
+**Current Status:** 4 pages built and functional. ELO History page pending xG integration for gameweek data.
 
-### Target Architecture
+### Architecture (Implemented)
 ```
 gaffers-notebook/
-├── app.py                      ← Home/Overview (landing page)
+├── app.py                      ← Home/Overview (landing page) ✅
 ├── pages/
-│   ├── 1_ELO_Rankings.py       ← Cross-league leaderboard
-│   ├── 2_ELO_History.py        ← Team rating progression over time
-│   ├── 3_YoY_Differentials.py  ← Cumulative differential charts
-│   ├── 4_Player_Stats.py       ← Contributions, top scorers
+│   ├── 1_ELO_Rankings.py       ← Cross-league leaderboard ✅
+│   ├── 2_ELO_History.py        ← Team rating progression (PENDING - needs gameweek data)
+│   ├── 3_YoY_Differentials.py  ← Cumulative differential charts ✅
+│   ├── 4_Player_Stats.py       ← Player comparison with charts ✅
 │   └── (future: xG, opponent difficulty, predictions)
 └── src/
-    └── database.py             ← Shared data layer (already exists)
+    └── database.py             ← Shared data layer with pagination ✅
 ```
 
-### Build Order (iterate towards final vision)
+### Build Progress
 
-**Phase 1: Foundation**
-- [ ] Create `app.py` (home page with overview/navigation)
-- [ ] Create `pages/` directory
-- [ ] Add streamlit + plotly to requirements.txt
+**Phase 1: Foundation** ✅
+- [x] Create `app.py` (home page with overview stats)
+- [x] Create `pages/` directory
+- [x] Add streamlit + plotly + streamlit-searchbox to requirements.txt
 
-**Phase 2: Core Pages**
-- [ ] `1_ELO_Rankings.py` — Query `elo_ratings`, sortable table, league filter
-- [ ] `2_ELO_History.py` — Query `elo_match_history`, line chart per team
-- [ ] `3_YoY_Differentials.py` — Query `team_stats`, cumulative line chart
-- [ ] `4_Player_Stats.py` — Query `player_stats`, top contributors table
+**Phase 2: Core Pages** (3/4 complete)
+- [x] `1_ELO_Rankings.py` — Sortable table, league/team filters, reset button
+- [ ] `2_ELO_History.py` — Blocked: needs gameweek data (will come with xG integration)
+- [x] `3_YoY_Differentials.py` — Multi-team comparison, line chart, heatmap table
+- [x] `4_Player_Stats.py` — Accent-insensitive search, 10-player comparison, stacked bar chart
 
 **Phase 3: Polish & Deploy**
+- [x] Add caching with `@st.cache_data` for DB queries
 - [ ] Add consistent styling/theme across pages
-- [ ] Add caching with `@st.cache_data` for DB queries
 - [ ] Deploy to Streamlit Cloud (free for public apps)
 - [ ] Add secrets: SUPABASE_URL, SUPABASE_KEY
 
