@@ -37,7 +37,7 @@ Fixtures involving newly promoted or relegated teams are **excluded** to avoid b
 The pipeline maintains **cross-league ELO ratings** for all teams:
 
 - **Base Rating:** 1500 for new teams
-- **Home Advantage:** +60 ELO equivalent
+- **Home Advantage:** +40 ELO (derived from 9322 matches)
 - **K-Factor:** 40 for new teams, 20 for established teams (30+ matches)
 - **Margin Multiplier:** Bigger wins = bigger rating changes
 - **Incremental Updates:** Only processes new matches

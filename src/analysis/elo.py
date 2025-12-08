@@ -2,7 +2,7 @@ import math
 import pandas as pd
 
 class EloTracker:
-    def __init__(self, k_factor_stable=20, k_factor_volatile=40, volatile_match_count=30, home_advantage=60, base_rating=1500):
+    def __init__(self, k_factor_stable=20, k_factor_volatile=40, volatile_match_count=30, home_advantage=40, base_rating=1500):
         """
         Initialize the ELO tracking system with dynamic K-factors.
         
@@ -15,6 +15,7 @@ class EloTracker:
         """
         self.ratings = {}      # {team_name: rating}
         self.match_counts = {} # {team_name: count}
+        self.team_leagues = {} # {team_name: league} - last league played in
         self.history = []      # List of match dicts
         
         self.k_stable = k_factor_stable
@@ -106,6 +107,10 @@ class EloTracker:
         # Update Match Counts
         self.match_counts[home_team] = self.match_counts.get(home_team, 0) + 1
         self.match_counts[away_team] = self.match_counts.get(away_team, 0) + 1
+        
+        # Track league (uses last league played)
+        self.team_leagues[home_team] = league
+        self.team_leagues[away_team] = league
 
         # Log history
         self.history.append({
@@ -153,10 +158,15 @@ class EloTracker:
 
     def get_current_ratings_df(self):
         """Return current ratings for all teams."""
-        data = [{'Team': k, 'Elo': round(v, 2), 'Matches': self.match_counts.get(k, 0)} for k, v in self.ratings.items()]
+        data = [{
+            'Team': k, 
+            'Elo': round(v, 2), 
+            'Matches': self.match_counts.get(k, 0),
+            'league': self.team_leagues.get(k)
+        } for k, v in self.ratings.items()]
         df = pd.DataFrame(data).sort_values('Elo', ascending=False)
         df['Rank'] = range(1, len(df) + 1)
-        return df[['Rank', 'Team', 'Elo', 'Matches']]
+        return df[['Rank', 'Team', 'Elo', 'Matches', 'league']]
 
     
     def load_from_db(self, ratings_df):
@@ -164,6 +174,8 @@ class EloTracker:
         for _, row in ratings_df.iterrows():
             self.ratings[row['team']] = row['elo_rating']
             self.match_counts[row['team']] = row['matches_played']
+            if row.get('league'):
+                self.team_leagues[row['team']] = row['league']
         print(f"   Loaded {len(self.ratings)} team ratings from DB")
 
     @classmethod
@@ -192,11 +204,15 @@ class EloTracker:
         matches_df = matches_df.sort_values('Date')
         
         for _, row in matches_df.iterrows():
+            # Use explicit None checks (0 is valid for goals)
+            fthg = row.get('fthg') if row.get('fthg') is not None else row.get('FTHG')
+            ftag = row.get('ftag') if row.get('ftag') is not None else row.get('FTAG')
+            
             self.process_match(
                 home_team=row.get('home_team') or row.get('HomeTeam'),
                 away_team=row.get('away_team') or row.get('AwayTeam'),
-                fthg=row.get('fthg') or row.get('FTHG'),
-                ftag=row.get('ftag') or row.get('FTAG'),
+                fthg=fthg,
+                ftag=ftag,
                 date=row['Date'],
                 season=row.get('season') or row.get('Season'),
                 league=row.get('league') or row.get('League')
