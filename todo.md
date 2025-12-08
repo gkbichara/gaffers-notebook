@@ -27,7 +27,7 @@
 - [x] Refactor src/analysis/elo.py for incremental updates:
   - [x] load_from_db() - load existing ratings from DB
   - [x] process_new_matches() - process only new matches
-- [ ] Update src/analysis/teams.py to query from DB instead of local CSV
+- [x] Update main.py to query YoY from DB via get_matches_for_analysis()
 - [x] Create run_incremental_elo() wrapper function
 - [x] Wire into main.py
 
@@ -74,5 +74,5 @@
 
 ## 🧹 Tech Debt / Clean Code
 - [ ] *Type Hinting*: Add strict mypy types to all functions.
-- [ ] *Unit Tests*: Add pytest coverage for the calculation logic in src/analysis/.
+- [x] *Unit Tests*: Add pytest coverage for database and ELO logic (28 tests).
 - [ ] *Async Scraping*: Use aiohttp if we expand to more leagues/seasons to speed up downloads.
