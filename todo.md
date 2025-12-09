@@ -18,17 +18,18 @@ All phases complete. Supabase is now the single source of truth.
 
 > **Design Principle:** Design for the end state, iterate towards it — not through disposable versions.
 
-**Current Status:** All core pages complete. Dashboard deployed to Streamlit Cloud.
+**Current Status:** Core pages complete. Adding xG analysis features.
 
 ### Architecture (Implemented)
 ```
 gaffers-notebook/
 ├── app.py                      ← Home/Overview (landing page) ✅
 ├── pages/
-│   ├── 1_ELO_Rankings.py       ← Rankings + History (merged) ✅
-│   ├── 2_YoY_Differentials.py  ← Cumulative differential charts ✅
-│   ├── 3_Player_Stats.py       ← Player comparison with charts ✅
-│   └── (future: xG, opponent difficulty, predictions)
+│   ├── 1_ELO_Rankings.py       ← Rankings + History ✅
+│   ├── 2_ELO_Snapshot.py       ← Historical ELO at specific points ✅
+│   ├── 3_YoY_Differentials.py  ← Cumulative differential charts ✅
+│   ├── 4_Player_Stats.py       ← Player comparison with charts ✅
+│   └── 5_xG_Analysis.py        ← xG trends & over/underperformance 🔄
 └── src/
     └── database.py             ← Shared data layer with pagination ✅
 ```
@@ -67,8 +68,9 @@ def load_elo_ratings():
 |-------|-------------|---------|
 | `elo_ratings` | team, league, elo_rating, matches_played | Leaderboard |
 | `elo_match_history` | date, home_team, away_team, home_rating_after, away_rating_after | Rating trends |
-| `team_stats` | league, season, team, match_number, cumulative | YoY charts |
+| `team_stats` | league, season, team, match_number, cumulative | YoY charts (points) |
 | `player_stats` | league, season, player, team, goals, assists, contribution_pct | Player analysis |
+| `understat_team_matches` | league, season, team, opponent, xg_for, xg_against | xG Analysis |
 | `raw_matches` | All match data | Deep dives |
 
 ### Reference: Existing DB Functions (src/database.py)
@@ -78,12 +80,64 @@ def load_elo_ratings():
 
 ---
 
+## 🔄 xG Analysis — IN PROGRESS
+
+### Phase 1: Data Foundation ✅
+- [x] Create `understat_team_matches` table in Supabase
+- [x] Add RLS policies for public read + service write
+- [x] Build scraper: `get_team_match_xg()` in understat.py (using JSON API)
+- [x] Build uploader: `update_understat_team_matches()` in database.py
+- [x] Test upload (Serie A 2526)
+- [x] Backfill all 5 leagues × 6 seasons (19,352 records)
+
+### Phase 2: xG Analysis Page (`pages/5_xG_Analysis.py`)
+
+**Filters:**
+- Season(s) multiselect (with auto-fill gaps)
+- League dropdown
+- Team(s) multiselect (max 2)
+- Match range (From/To)
+
+**Section 1: Goals vs xG Chart**
+- Filled area chart showing over/underperformance
+- Green area = Goals > xG (clinical)
+- Red area = Goals < xG (wasteful)
+- If 2 teams selected: Show 2 stacked charts (one per team)
+- Multi-season support (like ELO Snapshot)
+
+**Section 2: xG YoY Differentials**
+- Same fixture comparison (like current YoY page)
+- Table: Match, Opponent, Venue, xG (Now), xG (Last), Diff, Cumulative
+- Color-coded heatmap
+- Line chart: Cumulative xG differential
+
+**Section 3: Defensive xG (xGA)**
+- Same as above but for xG Against
+- Lower xGA = defensive improvement (green)
+
+**Section 4: Summary Cards**
+- Total Goals vs Total xG
+- Over/underperformance status (Clinical/Wasteful)
+- Goals Against vs xGA
+
+### Phase 3: Player Stats Enhancement
+- [ ] Add columns to `player_stats`: xg, xa, xg_pct, xa_pct, goals_minus_xg
+- [ ] Update player scraper to extract xG/xA from Understat
+- [ ] Add xG columns to Player Stats page table
+- [ ] Add "Most Clinical" metric (highest Goals - xG)
+
+### Phase 4: Future Tabs (Deferred)
+- [ ] **Team Deep Dive** — Player reliance, attack/defense profiles, form trends
+- [ ] **Predictions** — ELO + xG model for match predictions
+
+---
+
 ## 📋 Future Enhancements
 
 ### Analytics
-- [ ] **xG Differentials** — "Are they winning lucky, or playing better?"
 - [ ] **Player YoY Tracking** — Compare player output season-over-season
 - [ ] **Opponent Difficulty** — Weight differentials by opponent ELO
+- [ ] **Set Piece Analysis** — Find additional data source
 
 ### Infrastructure
 - [ ] **Error Monitoring** — Slack/Discord alerts on pipeline failure

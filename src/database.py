@@ -72,7 +72,64 @@ def update_player_stats(league_key, season, player_data_list):
         print(f"   ✗ Database Upload Failed: {e}")
         return False
 
+
+def update_understat_team_matches(league_key, season, matches):
+    """
+    Upserts match-level xG data into Supabase.
     
+    Args:
+        league_key: e.g. 'serie_a'
+        season: e.g. '2526'
+        matches: List of dicts from get_team_match_xg()
+    """
+    client = get_db()
+    
+    # Prepare records for upsert
+    records = []
+    seen_keys = set()
+    
+    for m in matches:
+        # Unique key based on DB constraint
+        unique_key = (m['team'], m['match_date'], m['league'], m['season'])
+        
+        if unique_key in seen_keys:
+            continue
+        seen_keys.add(unique_key)
+        
+        record = {
+            "league": m['league'],
+            "season": m['season'],
+            "team": m['team'],
+            "opponent": m['opponent'],
+            "venue": m['venue'],
+            "match_date": m['match_date'],
+            "match_number": m['match_number'],
+            "goals_for": m['goals_for'],
+            "goals_against": m['goals_against'],
+            "xg_for": m['xg_for'],
+            "xg_against": m['xg_against'],
+            "npxg_for": m['npxg_for'],
+            "npxg_against": m['npxg_against'],
+            "result": m['result'].upper(),  # W/D/L
+            "points": m['points'],
+        }
+        records.append(record)
+    
+    try:
+        chunk_size = 1000
+        for i in range(0, len(records), chunk_size):
+            chunk = records[i:i + chunk_size]
+            client.table("understat_team_matches").upsert(
+                chunk, 
+                on_conflict="team, match_date, league, season"
+            ).execute()
+        
+        print(f"   ✓ Uploaded {len(records)} xG match records to Supabase")
+        return True
+    except Exception as e:
+        print(f"   ✗ xG Upload Failed: {e}")
+        return False
+
 
 def update_team_stats(league_key, season, results_df):
     """
@@ -440,6 +497,40 @@ def get_team_stats(league=None, season=None):
             query = query.eq('season', season)
         
         query = query.range(offset, offset + page_size - 1)
+        response = query.execute()
+        
+        if not response.data:
+            break
+            
+        all_data.extend(response.data)
+        
+        if len(response.data) < page_size:
+            break
+            
+        offset += page_size
+    
+    return pd.DataFrame(all_data)
+
+
+def get_xg_matches(league=None, season=None, team=None):
+    """Query xG match data from Supabase with pagination."""
+    client = get_db()
+    
+    all_data = []
+    page_size = 1000
+    offset = 0
+    
+    while True:
+        query = client.table("understat_team_matches").select("*")
+        
+        if league:
+            query = query.eq('league', league)
+        if season:
+            query = query.eq('season', season)
+        if team:
+            query = query.eq('team', team)
+        
+        query = query.order('match_date').range(offset, offset + page_size - 1)
         response = query.execute()
         
         if not response.data:

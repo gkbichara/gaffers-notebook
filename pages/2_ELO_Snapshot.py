@@ -71,6 +71,13 @@ if "reset_snapshot" in st.session_state and st.session_state["reset_snapshot"]:
 col1, col2, col3 = st.columns([1.5, 1, 0.5])
 
 with col1:
+    # Sort selected seasons before rendering (keeps them in chronological order)
+    if "snapshot_seasons" in st.session_state:
+        current = st.session_state["snapshot_seasons"]
+        sorted_current = sorted(current, key=lambda x: available_seasons_display.index(x) if x in available_seasons_display else 0)
+        if current != sorted_current:
+            st.session_state["snapshot_seasons"] = sorted_current
+    
     # Multi-season selection (using display names)
     selected_seasons_display_raw = st.multiselect(
         "Season(s)",

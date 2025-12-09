@@ -93,3 +93,43 @@ CHART_COLORS = {
 
 # Plotly color sequence for multi-line charts
 PLOTLY_COLOR_SEQUENCE = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
+
+# Team name mapping: Understat -> Football-data.co.uk
+# Use this if you need to join data from both sources
+TEAM_NAME_MAP = {
+    # Serie A
+    'AC Milan': 'Milan',
+    
+    # Premier League
+    'Manchester City': 'Man City',
+    'Manchester United': 'Man United',
+    'Newcastle United': 'Newcastle',
+    'Nottingham Forest': "Nott'm Forest",
+    'Wolverhampton Wanderers': 'Wolves',
+    
+    # La Liga
+    'Athletic Club': 'Ath Bilbao',
+    'Atletico Madrid': 'Ath Madrid',
+    'Celta Vigo': 'Celta',
+    'Rayo Vallecano': 'Vallecano',
+    'Real Betis': 'Betis',
+    'Real Sociedad': 'Sociedad',
+    
+    # Bundesliga
+    'Bayer Leverkusen': 'Leverkusen',
+    'Borussia Dortmund': 'Dortmund',
+    'Borussia M.Gladbach': "M'gladbach",
+    'Eintracht Frankfurt': 'Ein Frankfurt',
+    'FC Cologne': 'FC Koln',
+    'FC Heidenheim': 'Heidenheim',
+    'Mainz 05': 'Mainz',
+    'RasenBallsport Leipzig': 'RB Leipzig',
+    'VfB Stuttgart': 'Stuttgart',
+    
+    # Ligue 1
+    'Clermont Foot': 'Clermont',
+    'Paris Saint Germain': 'Paris SG',
+}
+
+# Reverse mapping: Football-data.co.uk -> Understat
+TEAM_NAME_MAP_REVERSE = {v: k for k, v in TEAM_NAME_MAP.items()}

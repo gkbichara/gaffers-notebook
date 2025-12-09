@@ -1,21 +1,35 @@
 import os
+import argparse
+import time
 
 from src.scrapers.matches import main as run_scraper
 from src.analysis.teams import analyze_league, save_league_results, get_latest_standings
 from src.analysis.elo import run_incremental_elo
-from src.scrapers.understat import fetch_understat_data
+from src.scrapers.understat import fetch_understat_data, get_team_match_xg
 from src.analysis.players import process_league_players, save_player_results
 from src.config import (
     LEAGUE_KEYS,
     LEAGUES,
     DATA_DIR,
     SEASONS,
+    CURRENT_SEASON,
 )
-from src.database import update_player_stats, update_team_stats, get_matches_for_analysis
+from src.database import update_player_stats, update_team_stats, update_understat_team_matches, get_matches_for_analysis
 
-def main():
+
+def main(full_backfill=False):
+    # Determine which seasons to process
+    if full_backfill:
+        seasons_to_process = SEASONS
+        mode = "FULL BACKFILL"
+    else:
+        seasons_to_process = [CURRENT_SEASON]
+        mode = "CURRENT SEASON ONLY"
+    
     print("="*60)
-    print("FOOTBALL DATA PIPELINE - Starting")
+    print(f"FOOTBALL DATA PIPELINE - {mode}")
+    print("="*60)
+    print(f"Seasons: {', '.join(seasons_to_process)}")
     print("="*60)
     
     # Step 1: Scrape football-data.co.uk (team data)
@@ -64,9 +78,9 @@ def main():
         traceback.print_exc()
     
     # Step 3: Scrape Understat (player data - independent)
-    print("\n[3/3] Fetching player contribution data...")
+    print("\n[3/4] Fetching player contribution data...")
     try:
-        for season in SEASONS:
+        for season in seasons_to_process:
             print(f"\nSeason {season}:")
             for league_key in LEAGUE_KEYS:
                 # New modular flow
@@ -77,9 +91,29 @@ def main():
 
                 # Upload to Supabase
                 update_player_stats(league_key, season, contributions)
+                
+                time.sleep(1)  # Rate limiting
 
     except Exception as e:
         print(f"Understat scraper failed: {e}")
+    
+    # Step 4: Scrape Understat xG data (team match-level)
+    print("\n[4/4] Fetching xG match data...")
+    try:
+        for season in seasons_to_process:
+            print(f"\nSeason {season}:")
+            for league_key in LEAGUE_KEYS:
+                matches = get_team_match_xg(league_key, season)
+                
+                if matches:
+                    update_understat_team_matches(league_key, season, matches)
+                else:
+                    print(f"   ⚠ No xG data for {league_key} {season}")
+                
+                time.sleep(1)  # Rate limiting
+
+    except Exception as e:
+        print(f"xG scraper failed: {e}")
     
     print("\n" + "="*60)
     print("Pipeline complete!")
@@ -87,4 +121,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Football Data Pipeline")
+    parser.add_argument(
+        "--full", 
+        action="store_true", 
+        help="Run full backfill for all seasons (default: current season only)"
+    )
+    args = parser.parse_args()
+    
+    main(full_backfill=args.full)
