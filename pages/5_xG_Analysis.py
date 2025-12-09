@@ -194,10 +194,14 @@ for idx, team in enumerate(selected_teams):
     st.markdown(f"**{team}** ({len(team_data)} matches)")
     
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Goals", f"{total_goals}", f"{goals_diff:+.1f} vs xG")
-    c2.metric("xG", f"{total_xg:.1f}", attack_status)
-    c3.metric("Goals Against", f"{total_goals_against}", f"{ga_diff:+.1f} vs xGA")
-    c4.metric("xGA", f"{total_xga:.1f}", defense_status)
+    # Goals: positive diff = clinical = good (green) 
+    c1.metric("Goals", f"{total_goals}", f"{goals_diff:+.1f} vs xG", delta_color="normal")
+    # xG: show status - wasteful should be red (inverse when negative diff)
+    c2.metric("xG", f"{total_xg:.1f}", attack_status, delta_color="off" if attack_status == "Expected" else ("normal" if goals_diff > 0 else "inverse"))
+    # Goals Against: negative diff = solid = good (inverse coloring)
+    c3.metric("Goals Against", f"{total_goals_against}", f"{ga_diff:+.1f} vs xGA", delta_color="inverse")
+    # xGA: solid should be green (normal when negative ga_diff)
+    c4.metric("xGA", f"{total_xga:.1f}", defense_status, delta_color="off" if defense_status == "Expected" else ("inverse" if ga_diff > 0 else "normal"))
     
     if idx < len(selected_teams) - 1:
         st.markdown("---")
@@ -554,30 +558,30 @@ with st.expander("📊 xG Year-over-Year Comparison", expanded=False):
                     final_xga_diff = cumulative_xga_diff
                     net_change = final_xg_diff - final_xga_diff
                     
-                    # xG: positive = good (normal coloring)
+                    # xG: positive = good (green), negative = bad (red)
                     col1.metric(
                         "Total xG Change", 
                         f"{final_xg_diff:+.2f}",
-                        f"{'↑' if final_xg_diff > 0 else '↓'} {'Improvement' if final_xg_diff > 0 else 'Decline'}",
-                        delta_color="normal"  # Green for positive, red for negative
+                        "Improvement" if final_xg_diff > 0 else "Decline",
+                        delta_color="normal" if final_xg_diff >= 0 else "inverse"
                     )
                     col2.metric(
                         "Matches Compared",
                         len(comparison_rows)
                     )
-                    # xGA: negative = good (inverse coloring)
+                    # xGA: negative = good (green), positive = bad (red)
                     col3.metric(
                         "Total xGA Change",
                         f"{final_xga_diff:+.2f}",
-                        f"{'↓' if final_xga_diff < 0 else '↑'} {'Improvement' if final_xga_diff < 0 else 'Decline'}",
-                        delta_color="inverse"  # Green for negative (less xGA = better)
+                        "Improvement" if final_xga_diff < 0 else "Decline",
+                        delta_color="inverse" if final_xga_diff <= 0 else "normal"
                     )
-                    # Net: positive = good (normal coloring)
+                    # Net: positive = good (green), negative = bad (red)
                     col4.metric(
                         "Net xG Change",
                         f"{net_change:+.2f}",
-                        f"{'↑' if net_change > 0 else '↓'} {'Better' if net_change > 0 else 'Worse'}",
-                        delta_color="normal"
+                        "Better" if net_change > 0 else "Worse",
+                        delta_color="normal" if net_change >= 0 else "inverse"
                     )
                 else:
                     st.info("No matching fixtures found between seasons")
