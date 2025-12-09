@@ -147,6 +147,58 @@ with col4:
 
 st.divider()
 
+# --- xG Performance Section ---
+st.header("xG Performance")
+
+col5, col6 = st.columns(2)
+
+with col5:
+    st.subheader("Most Clinical")
+    st.caption("Players outperforming their xG (min. 5 goals)")
+    if len(player_stats_df) > 0 and 'goals_minus_xg' in player_stats_df.columns:
+        # Filter to players with >5 goals and valid xG data
+        clinical_df = player_stats_df[
+            (player_stats_df['goals'] > 5) & 
+            (player_stats_df['goals_minus_xg'].notna())
+        ]
+        if len(clinical_df) > 0:
+            top_clinical = clinical_df.nlargest(5, 'goals_minus_xg')[
+                ['player_name', 'team', 'league', 'goals', 'xg', 'goals_minus_xg']
+            ].copy()
+            top_clinical['league'] = top_clinical['league'].map(LEAGUE_DISPLAY_NAMES)
+            top_clinical.columns = ['Player', 'Team', 'League', 'Goals', 'xG', 'G-xG']
+            top_clinical = top_clinical.reset_index(drop=True)
+            top_clinical.index = top_clinical.index + 1
+            top_clinical['xG'] = top_clinical['xG'].apply(lambda x: f"{x:.1f}")
+            top_clinical['G-xG'] = top_clinical['G-xG'].apply(lambda x: f"+{x:.2f}" if x > 0 else f"{x:.2f}")
+            st.dataframe(top_clinical, width='stretch')
+        else:
+            st.info("No clinical data available (need players with 5+ goals)")
+    else:
+        st.info("xG data not available yet")
+
+with col6:
+    st.subheader("Most Creative")
+    st.caption("Players creating the best chances (highest xA)")
+    if len(player_stats_df) > 0 and 'xa' in player_stats_df.columns:
+        creative_df = player_stats_df[player_stats_df['xa'].notna()]
+        if len(creative_df) > 0:
+            top_creative = creative_df.nlargest(5, 'xa')[
+                ['player_name', 'team', 'league', 'assists', 'xa']
+            ].copy()
+            top_creative['league'] = top_creative['league'].map(LEAGUE_DISPLAY_NAMES)
+            top_creative.columns = ['Player', 'Team', 'League', 'Assists', 'xA']
+            top_creative = top_creative.reset_index(drop=True)
+            top_creative.index = top_creative.index + 1
+            top_creative['xA'] = top_creative['xA'].apply(lambda x: f"{x:.2f}")
+            st.dataframe(top_creative, width='stretch')
+        else:
+            st.info("No creative data available")
+    else:
+        st.info("xA data not available yet")
+
+st.divider()
+
 # --- Player Contributions Section ---
 st.header("Top Player Contributions")
 

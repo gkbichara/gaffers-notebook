@@ -91,37 +91,64 @@ def get_team_data(league_key, season_code):
 
 
 def get_team_totals(league_key, season_code):
-    """Calculate total goals scored by each team from match history
+    """Calculate total goals AND xG for each team from match history
     
     Args:
         league_key: League key from config (e.g., 'serie_a')
     
     Returns:
-        dict: {'Team Name': total_goals_scored, ...}
+        dict: {'Team Name': {'goals': X, 'xG': Y}, ...}
     """
     teams_data = get_team_data(league_key, season_code)
     
     team_totals = {}
     for team_id, team_info in teams_data.items():
         team_name = team_info['title']
+        history = team_info['history']
         
-        # Sum up goals scored across all matches in history
-        total_goals = sum(match['scored'] for match in team_info['history'])
-        team_totals[team_name] = total_goals
-        
+        # Sum up goals and xG across all matches
+        team_totals[team_name] = {
+            'goals': sum(match['scored'] for match in history),
+            'xG': sum(float(match['xG']) for match in history),
+        }
     
     return team_totals
 
 def fetch_understat_data(league_key, season_code):
     """
     Facade function to get both players and team totals in one go.
+    Uses the API approach for reliability (HTML parsing gets blocked).
     
     Returns:
-        tuple: (players_list, team_goals_dict)
+        tuple: (players_list, team_totals_dict)
+               team_totals_dict: {'Team Name': {'goals': X, 'xG': Y}, ...}
     """
-    players = get_league_players(league_key, season_code)
-    team_goals = get_team_totals(league_key, season_code)
-    return players, team_goals
+    api_data = get_league_data_api(league_key, season_code)
+    
+    if not api_data:
+        print(f"Failed to fetch data for {league_key} {season_code}")
+        return [], {}
+    
+    # Extract players
+    players = api_data.get('players', [])
+    
+    # Decode HTML entities in player names
+    for player in players:
+        player['player_name'] = html.unescape(player['player_name'])
+    
+    # Calculate team totals from teams data
+    teams_data = api_data.get('teams', {})
+    team_totals = {}
+    for team_id, team_info in teams_data.items():
+        team_name = html.unescape(team_info['title'])
+        history = team_info['history']
+        
+        team_totals[team_name] = {
+            'goals': sum(match['scored'] for match in history),
+            'xG': sum(float(match['xG']) for match in history),
+        }
+    
+    return players, team_totals
 
 
 def get_league_data_api(league_key, season_code):

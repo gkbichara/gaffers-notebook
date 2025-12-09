@@ -56,7 +56,14 @@ def update_player_stats(league_key, season, player_data_list):
             "goals_pct": p['goals_pct'],
             "assists_pct": p['assists_pct'],
             "games_played": p['games'],
-            # updated_at defaults to NOW() in SQL, but we can force it here too if we want
+            # xG fields
+            "xg": p.get('xg'),
+            "xa": p.get('xa'),
+            "npxg": p.get('npxg'),
+            "xg_pct": p.get('xg_pct'),
+            "shots": p.get('shots'),
+            "minutes": p.get('minutes'),
+            "goals_minus_xg": p.get('goals_minus_xg'),
         }
         records.append(record)
         

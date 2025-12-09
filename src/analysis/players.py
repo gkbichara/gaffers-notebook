@@ -2,20 +2,31 @@ import os
 import pandas as pd
 from src.config import DATA_DIR, LEAGUES
 
-def calculate_contribution_stats(player, team_total_goals):
+def calculate_contribution_stats(player, team_total_goals, team_total_xg=0):
     """
-    Calculate contribution percentages for a single player.
+    Calculate contribution percentages and xG stats for a single player.
     
     Args:
-        player: Dict containing raw player stats (goals, assists, etc.)
+        player: Dict containing raw player stats (goals, assists, xG, xA, etc.)
         team_total_goals: Integer of total goals scored by the team
+        team_total_xg: Float of total xG for the team
         
     Returns:
-        Dict with calculated contribution metrics
+        Dict with calculated contribution metrics and xG stats
     """
     goals = int(player['goals'])
     assists = int(player['assists'])
     total_contribs = goals + assists
+    
+    # xG stats from Understat
+    xg = float(player.get('xG', 0))
+    xa = float(player.get('xA', 0))
+    npxg = float(player.get('npxG', 0))
+    shots = int(player.get('shots', 0))
+    minutes = int(player.get('time', 0))
+    
+    # Calculated metrics
+    goals_minus_xg = round(goals - xg, 2)
     
     # Avoid division by zero
     if team_total_goals > 0:
@@ -26,6 +37,9 @@ def calculate_contribution_stats(player, team_total_goals):
         contribution_pct = 0
         goals_pct = 0
         assists_pct = 0
+    
+    # xG percentage of team total
+    xg_pct = (xg / team_total_xg * 100) if team_total_xg > 0 else 0
         
     return {
         'player': player['player_name'],
@@ -37,16 +51,24 @@ def calculate_contribution_stats(player, team_total_goals):
         'goals_pct': round(goals_pct, 1),
         'assists_pct': round(assists_pct, 1),
         'games': int(player['games']),
+        # xG fields
+        'xg': round(xg, 2),
+        'xa': round(xa, 2),
+        'npxg': round(npxg, 2),
+        'xg_pct': round(xg_pct, 1),
+        'shots': shots,
+        'minutes': minutes,
+        'goals_minus_xg': goals_minus_xg,
     }
 
 
-def process_league_players(all_players_raw, team_goals_dict, season_code):
+def process_league_players(all_players_raw, team_totals_dict, season_code):
     """
     Process raw player list into analyzed contribution stats.
     
     Args:
         all_players_raw: List of dicts from Understat scraper
-        team_goals_dict: Dict mapping team names to total goals
+        team_totals_dict: Dict mapping team names to {'goals': X, 'xG': Y}
         season_code: String season identifier (e.g., '2324')
         
     Returns:
@@ -60,10 +82,13 @@ def process_league_players(all_players_raw, team_goals_dict, season_code):
         # Skip multi-team players (business rule)
         if ',' in player_team:
             continue
-            
-        team_total = team_goals_dict.get(player_team, 0)
         
-        stats = calculate_contribution_stats(player, team_total)
+        # Get team totals (goals and xG)
+        team_data = team_totals_dict.get(player_team, {'goals': 0, 'xG': 0})
+        team_total_goals = team_data['goals']
+        team_total_xg = team_data['xG']
+        
+        stats = calculate_contribution_stats(player, team_total_goals, team_total_xg)
         stats['season'] = season_code
         
         processed_stats.append(stats)
