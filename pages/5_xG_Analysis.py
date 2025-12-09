@@ -561,36 +561,35 @@ with st.expander("📊 xG Year-over-Year Comparison", expanded=False):
                     st.dataframe(styled_df, hide_index=True, width='stretch')
                     
                     # Summary metrics with correct colors
-                    # Include numeric values in delta so Streamlit can parse arrow direction
                     col1, col2, col3, col4 = st.columns(4)
                     final_xg_diff = cumulative_xg_diff
                     final_xga_diff = cumulative_xga_diff
                     net_change = final_xg_diff - final_xga_diff
                     
-                    # xG: positive = good (green up), negative = bad (red down)
+                    # xG: positive = good (green), negative = bad (red)
                     col1.metric(
                         "Total xG Change", 
                         f"{final_xg_diff:+.2f}",
-                        f"{final_xg_diff:+.2f} {'Improvement' if final_xg_diff > 0 else 'Decline'}",
-                        delta_color="normal"
+                        "Attacking Improvement" if final_xg_diff > 0 else "Attacking Decline",
+                        delta_color="normal" if final_xg_diff >= 0 else "inverse"
                     )
                     col2.metric(
                         "Matches Compared",
                         len(comparison_rows)
                     )
-                    # xGA: invert so positive = improvement (green up)
+                    # xGA: negative = improvement (green)
                     col3.metric(
                         "Total xGA Change",
                         f"{final_xga_diff:+.2f}",
-                        f"{-final_xga_diff:+.2f} {'Improvement' if final_xga_diff < 0 else 'Decline'}",
-                        delta_color="normal"
+                        "Defensive Improvement" if final_xga_diff < 0 else "Defensive Decline",
+                        delta_color="normal" if final_xga_diff <= 0 else "inverse"
                     )
-                    # Net: positive = good (green up), negative = bad (red down)
+                    # Net: positive = good (green), negative = bad (red)
                     col4.metric(
                         "Net xG Change",
                         f"{net_change:+.2f}",
-                        f"{net_change:+.2f} {'Better' if net_change > 0 else 'Worse'}",
-                        delta_color="normal"
+                        "Overall Better" if net_change > 0 else "Overall Worse",
+                        delta_color="normal" if net_change >= 0 else "inverse"
                     )
                 else:
                     st.info("No matching fixtures found between seasons")
