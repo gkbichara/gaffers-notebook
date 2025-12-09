@@ -49,29 +49,36 @@ if "reset_yoy_filters" in st.session_state and st.session_state["reset_yoy_filte
 col1, col2, col3, col4 = st.columns([1, 2, 1, 0.5])
 
 with col1:
-    # League filter
-    leagues = sorted(team_stats_df['league_display'].unique().tolist())
+    # League filter with "All Leagues" as default
+    leagues = ["All Leagues"] + sorted(team_stats_df['league_display'].unique().tolist())
     selected_league = st.selectbox(
         "League",
         options=leagues,
-        index=None,
-        placeholder="Select league...",
+        index=0,  # "All Leagues" is default
         key="yoy_league"
     )
 
 with col2:
     # Team multiselect (max 3) - filtered by league
-    if selected_league:
-        available_teams = sorted(team_stats_df[team_stats_df['league_display'] == selected_league]['team_name'].unique().tolist())
+    if selected_league == "All Leagues":
+        # Show teams with league in parentheses
+        team_league_map = team_stats_df.groupby('team_name')['league_display'].first().to_dict()
+        available_teams_raw = sorted(team_stats_df['team_name'].unique().tolist())
+        available_teams = [f"{team} ({team_league_map[team]})" for team in available_teams_raw]
+        team_name_map = {f"{team} ({team_league_map[team]})": team for team in available_teams_raw}
     else:
-        available_teams = sorted(team_stats_df['team_name'].unique().tolist())
+        available_teams = sorted(team_stats_df[team_stats_df['league_display'] == selected_league]['team_name'].unique().tolist())
+        team_name_map = {team: team for team in available_teams}
     
-    # Default to Roma if no selection yet
+    # Find Roma as default
     default_teams = []
-    if "yoy_teams" not in st.session_state and "Roma" in available_teams:
-        default_teams = ["Roma"]
+    if "yoy_teams" not in st.session_state:
+        for team_option in available_teams:
+            if 'Roma' in team_option:
+                default_teams = [team_option]
+                break
     
-    selected_teams = st.multiselect(
+    selected_teams_display = st.multiselect(
         "Teams (max 3)",
         options=available_teams,
         default=default_teams,
@@ -79,6 +86,9 @@ with col2:
         placeholder="Select teams...",
         key="yoy_teams"
     )
+    
+    # Convert display names to actual team names
+    selected_teams = [team_name_map.get(t, t) for t in selected_teams_display]
 
 with col3:
     # Season multiselect (using display names)

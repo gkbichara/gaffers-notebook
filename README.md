@@ -60,11 +60,13 @@ The pipeline maintains **cross-league ELO ratings** for all teams:
 
 ```
 gaffers-notebook/
-├── app.py                 # Streamlit dashboard home page
+├── Home.py                # Streamlit dashboard home page
 ├── pages/                 # Streamlit multi-page app
 │   ├── 1_ELO_Rankings.py
+│   ├── 2_ELO_Snapshot.py
 │   ├── 3_YoY_Differentials.py
-│   └── 4_Player_Stats.py
+│   ├── 4_Player_Stats.py
+│   └── 5_xG_Analysis.py
 ├── src/
 │   ├── __init__.py
 │   ├── main.py              # Pipeline orchestrator
@@ -387,7 +389,9 @@ The `run_update.sh` script:
 ✅ **Streamlit Dashboard** - Interactive multi-page analytics with charts and filters  
 ✅ **Database-First Architecture** - Supabase is the single source of truth  
 ✅ **Cross-League ELO Ratings** - Track team strength with incremental updates  
+✅ **xG Analysis** - Goals vs Expected Goals with dynamic over/underperformance visualization  
 ✅ **Multi-League Coverage** - Analyzes all Top 5 European leagues  
+✅ **All Leagues Default** - Search teams across all leagues with "(League)" labels  
 ✅ **Match-by-Match Tracking** - See progression through the season  
 ✅ **Fair Comparisons** - Same opponent, same venue only  
 ✅ **Player Contribution Analysis** - Track individual player impact across all leagues  
@@ -396,6 +400,7 @@ The `run_update.sh` script:
 ✅ **GitHub Actions Automation** - Daily updates run automatically on GitHub servers  
 ✅ **28 Unit Tests** - Comprehensive test coverage for database and ELO logic  
 ✅ **Centralized Configuration** - Easy league management via config.py  
+✅ **Team Name Mapping** - Cross-source team name normalization ready  
 ✅ **Promoted Team Handling** - Automatically excludes teams without comparison data
 
 ---
@@ -406,35 +411,38 @@ The project includes an interactive **Streamlit dashboard** for exploring all th
 
 ```bash
 # Run locally
-streamlit run app.py
+streamlit run Home.py
 ```
 
 ### Pages
 
 | Page | Description |
 |------|-------------|
-| **Home** | Overview with top/bottom ELO teams, biggest over/underperformers, top player contributions |
-| **ELO Rankings** | Cross-league leaderboard with league/team filters |
-| **YoY Differentials** | Compare up to 3 teams' cumulative differential with line charts and heatmap tables |
+| **Home** | Overview with quick stats, top/bottom ELO teams, most improved/regressed teams, top player contributions |
+| **ELO Rankings** | Cross-league leaderboard with All Leagues default, team comparison charts |
+| **ELO Snapshot** | Historical ELO rankings at specific match numbers, multi-season support |
+| **YoY Differentials** | Compare up to 3 teams' cumulative point differential with line charts and heatmap tables |
 | **Player Stats** | Compare up to 10 players with accent-insensitive search, stacked bar charts showing goals/assists % |
+| **xG Analysis** | Goals vs Expected Goals trends, dynamic over/underperformance charts, xG YoY comparison, defensive xGA analysis |
 
 ### Features
 - 🔍 **Accent-insensitive search** — Find "Soulè" by typing "Soule"
-- 📊 **Interactive charts** — Plotly-powered visualizations
+- 📊 **Interactive charts** — Plotly-powered visualizations with dynamic coloring
 - 🔄 **Cached queries** — Fast loading with `@st.cache_data`
-- 🎯 **Cascading filters** — League → Team → Player
+- 🎯 **All Leagues default** — Search teams across all leagues with "(League)" labels
+- 🎯 **Roma default** — Pre-selected when available
+- 📈 **xG Analysis** — Compare actual goals to expected goals with YoY comparison
 
 ---
 
 ## 🔮 Coming Soon
 
-- 📈 **ELO History** — Team rating progression over time (pending gameweek data)
-- 📈 Additional metrics (xG comparison, goal differential trends)
+- 👥 **Player xG Stats** — Add xG/xA to player analysis with "Most Clinical" metrics
+- 🎯 **Team Deep Dive** — Player reliance, attack/defense profiles, form trends
+- 🔮 **Match Predictions** — ELO + xG model for match outcome predictions
 - 👥 Player YoY comparison (season-over-season contributions)
 - 🐦 Automated Twitter/X posts with weekly summaries
 - 📧 Email notifications for significant changes
-- 🎨 Player heatmaps and position-based analytics
-- ☁️ Streamlit Cloud deployment
 
 ---
 

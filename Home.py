@@ -5,12 +5,12 @@ Home page with key stats overview.
 import streamlit as st
 import pandas as pd
 
-from src.database import get_elo_ratings, get_team_stats, get_player_stats
+from src.database import get_elo_ratings, get_team_stats, get_player_stats, get_raw_matches
 from src.config import CURRENT_SEASON, LEAGUE_DISPLAY_NAMES
 
 # Page config
 st.set_page_config(
-    page_title="Gaffer's Notebook",
+    page_title="Home | Gaffer's Notebook",
     layout="wide"
 )
 
@@ -37,10 +37,48 @@ def load_player_stats():
     return get_player_stats(season=CURRENT_SEASON)
 
 
+@st.cache_data(ttl=3600)
+def load_match_count():
+    df = get_raw_matches()
+    return len(df) if df is not None else 0
+
+
 # Load data
 elo_df = load_elo_ratings()
 team_stats_df = load_team_stats()
 player_stats_df = load_player_stats()
+total_matches = load_match_count()
+
+# --- Quick Stats (moved to top) ---
+st.header("Quick Stats")
+
+col_s1, col_s2, col_s3, col_s4, col_s5 = st.columns(5)
+
+with col_s1:
+    st.metric("Total Matches", f"{total_matches:,}")
+
+with col_s2:
+    st.metric("Total Teams", len(elo_df) if len(elo_df) > 0 else 0)
+
+with col_s3:
+    st.metric("Leagues", 5)
+
+with col_s4:
+    if len(elo_df) > 0:
+        top_team = elo_df.nlargest(1, 'elo_rating').iloc[0]
+        st.metric("Top ELO", f"{top_team['elo_rating']:.0f}", top_team['team'])
+    else:
+        st.metric("Top ELO", "N/A")
+
+with col_s5:
+    if len(team_stats_df) > 0:
+        latest = team_stats_df.sort_values('match_number').groupby(['league', 'team_name']).last().reset_index()
+        top_perf = latest.nlargest(1, 'cumulative_differential').iloc[0]
+        st.metric("Best YoY", f"+{top_perf['cumulative_differential']:.0f}", top_perf['team_name'])
+    else:
+        st.metric("Best YoY", "N/A")
+
+st.divider()
 
 # --- ELO Rankings Section ---
 st.header("ELO Rankings")
@@ -79,7 +117,7 @@ st.header("Season Performance (YoY)")
 col3, col4 = st.columns(2)
 
 with col3:
-    st.subheader("Biggest Overperformers")
+    st.subheader("Most Improved")
     if len(team_stats_df) > 0:
         # Get the latest cumulative for each team
         latest = team_stats_df.sort_values('match_number').groupby(['league', 'team_name']).last().reset_index()
@@ -94,7 +132,7 @@ with col3:
         st.info("No YoY data available")
 
 with col4:
-    st.subheader("Biggest Underperformers")
+    st.subheader("Most Regressed")
     if len(team_stats_df) > 0:
         latest = team_stats_df.sort_values('match_number').groupby(['league', 'team_name']).last().reset_index()
         bottom_performers = latest.nsmallest(5, 'cumulative_differential')[['team_name', 'league', 'cumulative_differential', 'match_number']].copy()
@@ -124,34 +162,6 @@ if len(player_stats_df) > 0:
     st.dataframe(top_players, width='stretch')
 else:
     st.info("No player data available")
-
-st.divider()
-
-# --- Quick Stats ---
-st.header("Quick Stats")
-
-col5, col6, col7, col8 = st.columns(4)
-
-with col5:
-    st.metric("Total Teams", len(elo_df) if len(elo_df) > 0 else 0)
-
-with col6:
-    st.metric("Leagues", 5)
-
-with col7:
-    if len(elo_df) > 0:
-        top_team = elo_df.nlargest(1, 'elo_rating').iloc[0]
-        st.metric("Top ELO", f"{top_team['elo_rating']:.0f}", top_team['team'])
-    else:
-        st.metric("Top ELO", "N/A")
-
-with col8:
-    if len(team_stats_df) > 0:
-        latest = team_stats_df.sort_values('match_number').groupby(['league', 'team_name']).last().reset_index()
-        top_perf = latest.nlargest(1, 'cumulative_differential').iloc[0]
-        st.metric("Best YoY", f"+{top_perf['cumulative_differential']:.0f}", top_perf['team_name'])
-    else:
-        st.metric("Best YoY", "N/A")
 
 # Footer
 st.divider()

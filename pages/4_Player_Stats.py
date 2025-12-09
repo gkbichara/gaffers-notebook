@@ -68,13 +68,12 @@ if "reset_player_filters" in st.session_state and st.session_state["reset_player
 col1, col2, col3, col4, col5, col6 = st.columns([1, 1, 1.5, 1, 1, 0.5])
 
 with col1:
-    # League filter
-    leagues = sorted(player_stats_df['league_display'].unique().tolist())
+    # League filter with "All Leagues" as default
+    leagues = ["All Leagues"] + sorted(player_stats_df['league_display'].unique().tolist())
     selected_league = st.selectbox(
         "League",
         options=leagues,
-        index=None,
-        placeholder="All leagues",
+        index=0,  # "All Leagues" is default
         key="player_league"
     )
 
@@ -95,21 +94,34 @@ with col2:
 with col3:
     # Team filter (filtered by league)
     team_filter_df = player_stats_df.copy()
-    if selected_league:
+    if selected_league and selected_league != "All Leagues":
         league_key = [k for k, v in LEAGUE_DISPLAY_NAMES.items() if v == selected_league][0]
         team_filter_df = team_filter_df[team_filter_df['league'] == league_key]
     if selected_season:
         team_filter_df = team_filter_df[team_filter_df['season'] == selected_season]
     
-    available_teams = sorted(team_filter_df['team'].unique().tolist())
+    # Show teams with league in parentheses when "All Leagues" selected
+    if selected_league == "All Leagues":
+        team_league_map = team_filter_df.groupby('team')['league_display'].first().to_dict()
+        available_teams_raw = sorted(team_filter_df['team'].unique().tolist())
+        available_teams = ["All Teams"] + [f"{team} ({team_league_map[team]})" for team in available_teams_raw]
+    else:
+        available_teams = ["All Teams"] + sorted(team_filter_df['team'].unique().tolist())
     
-    selected_team = st.selectbox(
+    selected_team_display = st.selectbox(
         "Team",
         options=available_teams,
-        index=None,
-        placeholder="All teams",
+        index=0,  # "All Teams" is default
         key="player_team"
     )
+    
+    # Extract actual team name
+    if selected_team_display == "All Teams":
+        selected_team = None
+    elif " (" in selected_team_display:
+        selected_team = selected_team_display.rsplit(" (", 1)[0]
+    else:
+        selected_team = selected_team_display
 
 with col4:
     min_games = st.number_input(
@@ -140,7 +152,7 @@ with col6:
 # --- Apply base filters ---
 filtered_df = player_stats_df.copy()
 
-if selected_league:
+if selected_league and selected_league != "All Leagues":
     league_key = [k for k, v in LEAGUE_DISPLAY_NAMES.items() if v == selected_league][0]
     filtered_df = filtered_df[filtered_df['league'] == league_key]
 

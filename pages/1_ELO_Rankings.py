@@ -52,30 +52,37 @@ if "reset_filters" in st.session_state and st.session_state["reset_filters"]:
 col1, col2, col3 = st.columns([1, 2, 0.5])
 
 with col1:
-    # League filter
-    display_names = sorted(elo_df['league_display'].unique().tolist())
+    # League filter with "All Leagues" as default
+    display_names = ["All Leagues"] + sorted(elo_df['league_display'].unique().tolist())
     selected_display = st.selectbox(
         "Filter by League",
         options=display_names,
-        index=None,
-        placeholder="All Leagues",
+        index=0,  # "All Leagues" is default
         key="league_filter"
     )
 
 with col2:
     # Team multiselect - filtered by selected league
-    if selected_display:
-        available_teams = sorted(elo_df[elo_df['league_display'] == selected_display]['team'].tolist())
+    if selected_display == "All Leagues":
+        # Show teams with league in parentheses
+        team_league_map = elo_df.set_index('team')['league_display'].to_dict()
+        available_teams_raw = sorted(elo_df['team'].unique().tolist())
+        available_teams = [f"{team} ({team_league_map[team]})" for team in available_teams_raw]
+        team_name_map = {f"{team} ({team_league_map[team]})": team for team in available_teams_raw}
     else:
-        available_teams = sorted(elo_df['team'].unique().tolist())
+        available_teams = sorted(elo_df[elo_df['league_display'] == selected_display]['team'].tolist())
+        team_name_map = {team: team for team in available_teams}
     
-    selected_teams = st.multiselect(
+    selected_teams_display = st.multiselect(
         "Compare Teams (max 5)",
         options=available_teams,
         max_selections=5,
         placeholder="Select teams to compare...",
         key="team_select"
     )
+    
+    # Convert display names to actual team names
+    selected_teams = [team_name_map.get(t, t) for t in selected_teams_display]
 
 with col3:
     st.write("")  # Spacing
@@ -87,7 +94,7 @@ with col3:
 # Apply filters for rankings table
 filtered_df = elo_df.copy()
 
-if selected_display:
+if selected_display and selected_display != "All Leagues":
     filtered_df = filtered_df[filtered_df['league_display'] == selected_display]
 
 if selected_teams:
@@ -193,7 +200,7 @@ league_stats = league_stats.reset_index()
 league_stats.columns = ['League', 'Avg ELO', 'Highest', 'Lowest', 'Teams']
 
 # Put selected league at top if filtered
-if selected_display:
+if selected_display and selected_display != "All Leagues":
     selected_row = league_stats[league_stats['League'] == selected_display]
     other_rows = league_stats[league_stats['League'] != selected_display]
     league_stats = pd.concat([selected_row, other_rows], ignore_index=True)

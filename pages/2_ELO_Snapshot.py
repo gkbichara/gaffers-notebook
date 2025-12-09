@@ -87,13 +87,12 @@ with col1:
     )
 
 with col2:
-    # League filter
-    leagues = sorted(history_df['league_display'].dropna().unique().tolist())
+    # League filter with "All Leagues" as default
+    leagues = ["All Leagues"] + sorted(history_df['league_display'].dropna().unique().tolist())
     selected_league = st.selectbox(
         "League",
         options=leagues,
-        index=None,
-        placeholder="All leagues",
+        index=0,  # "All Leagues" is default
         key="snapshot_league"
     )
 
@@ -180,10 +179,16 @@ if len(selected_seasons) > 1:
 
 # --- Team Selection ---
 # Filter available teams by league
-if selected_league:
-    available_teams = sorted(season_df[season_df['league_display'] == selected_league]['team'].unique().tolist())
+if selected_league and selected_league != "All Leagues":
+    available_teams_raw = sorted(season_df[season_df['league_display'] == selected_league]['team'].unique().tolist())
+    available_teams = available_teams_raw
+    team_name_map = {team: team for team in available_teams_raw}
 else:
-    available_teams = sorted(season_df['team'].unique().tolist())
+    # Show teams with league in parentheses
+    team_league_map = season_df.groupby('team')['league_display'].first().to_dict()
+    available_teams_raw = sorted(season_df['team'].unique().tolist())
+    available_teams = [f"{team} ({team_league_map[team]})" for team in available_teams_raw]
+    team_name_map = {f"{team} ({team_league_map[team]})": team for team in available_teams_raw}
 
 # Track filter changes to know when to restore saved teams
 current_filter_key = f"{selected_seasons_display}_{selected_league}"
@@ -198,7 +203,7 @@ if st.session_state["snapshot_last_filter_key"] != current_filter_key:
         st.session_state["snapshot_teams"] = valid_saved
     st.session_state["snapshot_last_filter_key"] = current_filter_key
 
-selected_teams = st.multiselect(
+selected_teams_display = st.multiselect(
     "Compare Teams (optional - leave empty for all)",
     options=available_teams,
     max_selections=10,
@@ -206,8 +211,11 @@ selected_teams = st.multiselect(
     key="snapshot_teams"
 )
 
+# Convert display names to actual team names
+selected_teams = [team_name_map.get(t, t) for t in selected_teams_display]
+
 # Always save current selection
-st.session_state["snapshot_teams_saved"] = selected_teams
+st.session_state["snapshot_teams_saved"] = selected_teams_display
 
 st.divider()
 
@@ -243,7 +251,7 @@ else:
     filtered_df = pd.concat([first_df, middle_df, last_df], ignore_index=True)
 
 # Filter by league
-if selected_league:
+if selected_league and selected_league != "All Leagues":
     filtered_df = filtered_df[filtered_df['league_display'] == selected_league]
 
 # Filter by teams if selected
