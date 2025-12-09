@@ -109,27 +109,28 @@ def load_elo_ratings():
 - [x] Add "Most Clinical" metric on Home page (highest Goals - xG, >5 goals)
 - [x] Add "Most Creative" metric on Home page (highest xA)
 
-### Phase 4: Team Deep Dive Page (`pages/6_Team_Deep_Dive.py`)
-Single team focus with Roma as default.
+### Phase 4: Team Deep Dive Page (`pages/6_Team_Deep_Dive.py`) — IN PROGRESS
+Single team focus with Roma as default. Shared season filter applies to all sections below Player Reliance.
 
-**Setup:**
+**Completed:**
+- [x] **ELO Over Time** — Line chart with date range filter
+- [x] **Player Reliance** — Top contributors by % of team goals (own season filter)
+- [x] **Attack/Defense Profile** — Goals vs xG/xGA with key match examples
+- [x] **Home vs Away Form** — Split performance comparison with PPG chart
+- [x] **First Half vs Second Half** — HT→FT conversion (100% stacked bars)
+- [x] **Head-to-Head Records** — Best/worst opponents with min games filter
+- [x] **Day of Week** — PPG by weekday with weekend vs midweek comparison
+
+**Remaining:**
+- [x] **Form Trends** — Last 5/10 matches rolling PPG performance
+- [x] **Opponent Strength** — Performance vs strong/weak teams (by ELO)
+- [x] **Day vs Night** — Performance by kickoff time
+- [x] **Rest Days Analysis** — Performance based on days since last match
+- [x] **Shots Analysis** — Shots/game, shots on target, xG/shot
+
+**Needs Data Work:**
 - [ ] Add `referee` column to scraper and backfill data
-
-**Features:**
-- [ ] **ELO Over Time** — Line chart with date range zoom filter
-- [ ] **Player Reliance** — Who does the team depend on? (contribution %, xG %)
-- [ ] **Attack/Defense Profile** — Goals vs xG, xGA analysis (clinical/wasteful/solid)
-- [ ] **Home vs Away Form** — Split performance comparison
-- [ ] **First Half vs Second Half** — Winning at HT vs FT patterns
-- [ ] **Form Trends** — Last 5/10 matches rolling performance
-- [ ] **Opponent Strength** — Performance vs strong/weak teams (by ELO)
-- [ ] **Player Win Rate** — Players with highest win % (min games filter)
-- [ ] **Day vs Night** — Performance by kickoff time
-- [ ] **Day of Week** — Performance by weekday (Sat/Sun/midweek)
-- [ ] **Rest Days Analysis** — Performance based on days since last match
-- [ ] **Referee Analysis** — Win/loss % with specific referees
-- [ ] **Shots Analysis** — Shots/game, shots/goal, xG/shot
-- [ ] **Head-to-Head Records** — Best/worst records against specific opponents
+- [ ] **Referee Analysis** — Win/loss % with specific referees (blocked on above)
 
 **Data Sources:**
 | Metric | Source |
