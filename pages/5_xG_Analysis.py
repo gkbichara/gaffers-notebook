@@ -550,38 +550,47 @@ with st.expander("📊 xG Year-over-Year Comparison", expanded=False):
                     
                     st.plotly_chart(fig_yoy, width='stretch')
                     
+                    # Explanation for the chart
+                    st.caption(
+                        "**How to read this chart:** "
+                        "The **blue line** (xG Diff) shows how much more/less xG you're creating vs the same fixtures last season — higher is better. "
+                        "The **orange line** (xGA Improvement) shows defensive improvement — we invert xGA so that higher = conceding fewer chances. "
+                        "When both lines are above zero, you're outperforming last season."
+                    )
+                    
                     st.dataframe(styled_df, hide_index=True, width='stretch')
                     
                     # Summary metrics with correct colors
+                    # Include numeric values in delta so Streamlit can parse arrow direction
                     col1, col2, col3, col4 = st.columns(4)
                     final_xg_diff = cumulative_xg_diff
                     final_xga_diff = cumulative_xga_diff
                     net_change = final_xg_diff - final_xga_diff
                     
-                    # xG: positive = good (green), negative = bad (red)
+                    # xG: positive = good (green up), negative = bad (red down)
                     col1.metric(
                         "Total xG Change", 
                         f"{final_xg_diff:+.2f}",
-                        "Improvement" if final_xg_diff > 0 else "Decline",
-                        delta_color="normal" if final_xg_diff >= 0 else "inverse"
+                        f"{final_xg_diff:+.2f} {'Improvement' if final_xg_diff > 0 else 'Decline'}",
+                        delta_color="normal"
                     )
                     col2.metric(
                         "Matches Compared",
                         len(comparison_rows)
                     )
-                    # xGA: negative = good (green), positive = bad (red)
+                    # xGA: invert so positive = improvement (green up)
                     col3.metric(
                         "Total xGA Change",
                         f"{final_xga_diff:+.2f}",
-                        "Improvement" if final_xga_diff < 0 else "Decline",
-                        delta_color="inverse" if final_xga_diff <= 0 else "normal"
+                        f"{-final_xga_diff:+.2f} {'Improvement' if final_xga_diff < 0 else 'Decline'}",
+                        delta_color="normal"
                     )
-                    # Net: positive = good (green), negative = bad (red)
+                    # Net: positive = good (green up), negative = bad (red down)
                     col4.metric(
                         "Net xG Change",
                         f"{net_change:+.2f}",
-                        "Better" if net_change > 0 else "Worse",
-                        delta_color="normal" if net_change >= 0 else "inverse"
+                        f"{net_change:+.2f} {'Better' if net_change > 0 else 'Worse'}",
+                        delta_color="normal"
                     )
                 else:
                     st.info("No matching fixtures found between seasons")
