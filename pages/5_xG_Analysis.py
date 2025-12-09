@@ -511,31 +511,73 @@ with st.expander("📊 xG Year-over-Year Comparison", expanded=False):
                         f'xGA ({prev_season_display[:4]})': '{:.2f}',
                     })
                     
+                    # Line chart for cumulative xG differential
+                    fig_yoy = go.Figure()
+                    
+                    # Cumulative xG Diff line
+                    fig_yoy.add_trace(go.Scatter(
+                        x=comp_df['Match'],
+                        y=comp_df['Cum xG Diff'],
+                        name='Cumulative xG Diff',
+                        line=dict(color='#1f77b4', width=2),
+                        mode='lines+markers'
+                    ))
+                    
+                    # Cumulative xGA Diff line (inverted so negative = good)
+                    fig_yoy.add_trace(go.Scatter(
+                        x=comp_df['Match'],
+                        y=comp_df['Cum xGA Diff'].apply(lambda x: -x),  # Invert so up = better defense
+                        name='Cumulative xGA Improvement',
+                        line=dict(color='#ff7f0e', width=2),
+                        mode='lines+markers'
+                    ))
+                    
+                    # Zero line
+                    fig_yoy.add_hline(y=0, line_dash="dash", line_color="gray", opacity=0.5)
+                    
+                    fig_yoy.update_layout(
+                        title=f"{team}: xG YoY Differential (vs Same Fixtures Last Season)",
+                        xaxis_title="Match",
+                        yaxis_title="Cumulative Difference (Higher = Better)",
+                        height=350,
+                        template="plotly_dark",
+                        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+                    )
+                    
+                    st.plotly_chart(fig_yoy, width='stretch')
+                    
                     st.dataframe(styled_df, hide_index=True, width='stretch')
                     
-                    # Summary metrics
+                    # Summary metrics with correct colors
                     col1, col2, col3, col4 = st.columns(4)
                     final_xg_diff = cumulative_xg_diff
                     final_xga_diff = cumulative_xga_diff
+                    net_change = final_xg_diff - final_xga_diff
                     
+                    # xG: positive = good (normal coloring)
                     col1.metric(
                         "Total xG Change", 
                         f"{final_xg_diff:+.2f}",
-                        "Attacking Improvement" if final_xg_diff > 0 else "Attacking Decline"
+                        f"{'↑' if final_xg_diff > 0 else '↓'} {'Improvement' if final_xg_diff > 0 else 'Decline'}",
+                        delta_color="normal"  # Green for positive, red for negative
                     )
                     col2.metric(
                         "Matches Compared",
                         len(comparison_rows)
                     )
+                    # xGA: negative = good (inverse coloring)
                     col3.metric(
                         "Total xGA Change",
                         f"{final_xga_diff:+.2f}",
-                        "Defensive Improvement" if final_xga_diff < 0 else "Defensive Decline"
+                        f"{'↓' if final_xga_diff < 0 else '↑'} {'Improvement' if final_xga_diff < 0 else 'Decline'}",
+                        delta_color="inverse"  # Green for negative (less xGA = better)
                     )
+                    # Net: positive = good (normal coloring)
                     col4.metric(
                         "Net xG Change",
-                        f"{(final_xg_diff - final_xga_diff):+.2f}",
-                        "Overall Better" if (final_xg_diff - final_xga_diff) > 0 else "Overall Worse"
+                        f"{net_change:+.2f}",
+                        f"{'↑' if net_change > 0 else '↓'} {'Better' if net_change > 0 else 'Worse'}",
+                        delta_color="normal"
                     )
                 else:
                     st.info("No matching fixtures found between seasons")
