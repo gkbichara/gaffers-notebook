@@ -109,9 +109,41 @@ def load_elo_ratings():
 - [x] Add "Most Clinical" metric on Home page (highest Goals - xG, >5 goals)
 - [x] Add "Most Creative" metric on Home page (highest xA)
 
-### Phase 4: Future Pages (Planned)
-- [ ] **Team Deep Dive** — Player reliance, attack/defense profiles, form trends
+### Phase 4: Team Deep Dive Page (`pages/6_Team_Deep_Dive.py`)
+Single team focus with Roma as default.
+
+**Setup:**
+- [ ] Add `referee` column to scraper and backfill data
+
+**Features:**
+- [ ] **ELO Over Time** — Line chart with date range zoom filter
+- [ ] **Player Reliance** — Who does the team depend on? (contribution %, xG %)
+- [ ] **Attack/Defense Profile** — Goals vs xG, xGA analysis (clinical/wasteful/solid)
+- [ ] **Home vs Away Form** — Split performance comparison
+- [ ] **First Half vs Second Half** — Winning at HT vs FT patterns
+- [ ] **Form Trends** — Last 5/10 matches rolling performance
+- [ ] **Opponent Strength** — Performance vs strong/weak teams (by ELO)
+- [ ] **Player Win Rate** — Players with highest win % (min games filter)
+- [ ] **Day vs Night** — Performance by kickoff time
+- [ ] **Day of Week** — Performance by weekday (Sat/Sun/midweek)
+- [ ] **Rest Days Analysis** — Performance based on days since last match
+- [ ] **Referee Analysis** — Win/loss % with specific referees
+- [ ] **Shots Analysis** — Shots/game, shots/goal, xG/shot
+- [ ] **Head-to-Head Records** — Best/worst records against specific opponents
+
+**Data Sources:**
+| Metric | Source |
+|--------|--------|
+| Team shots per match | `raw_matches.hs`, `as_col`, `hst`, `ast` |
+| Player shots (season) | `player_stats.shots` |
+| Referee | `raw_matches.referee` (needs backfill) |
+| Kickoff time | `raw_matches.time` |
+| Day of week | `raw_matches.date` → extract weekday |
+| Rest days | `raw_matches.date` → days between matches |
+
+### Phase 5: Future Pages (Planned)
 - [ ] **Predictions** — ELO + xG model for match predictions
+- [ ] **Player Shot Analysis** — Per-player shot efficiency (later)
 
 ---
 
@@ -121,6 +153,7 @@ def load_elo_ratings():
 - [ ] **Player YoY Tracking** — Compare player output season-over-season
 - [ ] **Opponent Difficulty** — Weight differentials by opponent ELO
 - [ ] **Set Piece Analysis** — Find additional data source
+- [ ] **Goal Scorer Data** — Who scored against who (needs new data source)
 
 ### Infrastructure
 - [ ] **Error Monitoring** — Slack/Discord alerts on pipeline failure
