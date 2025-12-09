@@ -296,22 +296,67 @@ if selected_players:
         
         st.plotly_chart(fig, width='stretch')
         
+        # xG Contribution Breakdown chart (if xG data available)
+        if 'xg_pct' in chart_df.columns and chart_df['xg_pct'].notna().any():
+            st.subheader("xG Contribution Breakdown")
+            
+            fig_xg = go.Figure()
+            
+            # xG portion (% of team xG)
+            fig_xg.add_trace(go.Bar(
+                y=chart_df['label'],
+                x=chart_df['xg_pct'].fillna(0),
+                name='xG %',
+                orientation='h',
+                marker_color=CHART_COLORS['secondary'],
+                text=chart_df['xg_pct'].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else ""),
+                textposition='inside'
+            ))
+            
+            fig_xg.update_layout(
+                height=max(300, len(chart_df) * 50),
+                xaxis_title="% of Team xG",
+                yaxis_title="",
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+                margin=dict(l=200)
+            )
+            
+            st.plotly_chart(fig_xg, width='stretch')
+        
         # Comparison table for selected players
         st.markdown("**Comparison Details**")
-        comparison_df = chart_df[[
-            'player_name', 'team', 'league_display', 
-            'goals', 'assists', 'contributions', 'contribution_pct', 'games_played'
-        ]].copy()
-        comparison_df.columns = ['Player', 'Team', 'League', 'Goals', 'Assists', 'G+A', 'Contribution %', 'Games']
+        
+        # Build column list based on available xG data
+        # Order: Player, Team, League, Games, Goals, Assists, G+A, Contribution %, xG, xA, xG %, G-xG
+        base_cols = ['player_name', 'team', 'league_display', 'games_played', 'goals', 'assists', 'contributions', 'contribution_pct']
+        xg_cols = []
+        if 'xg' in chart_df.columns:
+            xg_cols.extend(['xg', 'xa', 'xg_pct', 'goals_minus_xg'])
+        
+        comparison_df = chart_df[base_cols + xg_cols].copy()
+        
+        # Rename columns
+        col_names = ['Player', 'Team', 'League', 'Games', 'Goals', 'Assists', 'G+A', 'Contribution %']
+        if xg_cols:
+            col_names.extend(['xG', 'xA', 'xG %', 'G-xG'])
+        comparison_df.columns = col_names
         comparison_df = comparison_df.sort_values('G+A', ascending=False)
         
-        styled_comparison = comparison_df.style.format({
+        # Format dict
+        format_dict = {
             'Contribution %': '{:.1f}%',
             'Goals': '{:.0f}',
             'Assists': '{:.0f}',
             'G+A': '{:.0f}',
             'Games': '{:.0f}'
-        })
+        }
+        if xg_cols:
+            format_dict['xG'] = '{:.2f}'
+            format_dict['xA'] = '{:.2f}'
+            format_dict['xG %'] = '{:.1f}%'
+            format_dict['G-xG'] = lambda x: f"+{x:.2f}" if x > 0 else f"{x:.2f}"
+        
+        styled_comparison = comparison_df.style.format(format_dict)
         
         st.dataframe(styled_comparison, width='stretch', hide_index=True)
 
@@ -320,28 +365,45 @@ st.divider()
 # --- Display Table ---
 st.subheader(f"All Players ({len(filtered_df):,} players)")
 
-# Prepare display dataframe
-display_df = filtered_df[[
-    'player_name', 'team', 'league_display', 'season',
-    'goals', 'assists', 'contributions', 'contribution_pct', 'games_played'
-]].copy()
+# Prepare display dataframe - check for xG columns
+# Order: Player, Team, League, Season, Games, Goals, Assists, G+A, Contribution %, xG, xA, xG %, G-xG
+base_cols = ['player_name', 'team', 'league_display', 'season', 'games_played', 'goals', 'assists', 'contributions', 'contribution_pct']
+has_xg = 'xg' in filtered_df.columns and filtered_df['xg'].notna().any()
+
+if has_xg:
+    display_cols = base_cols + ['xg', 'xa', 'xg_pct', 'goals_minus_xg']
+else:
+    display_cols = base_cols
+
+display_df = filtered_df[display_cols].copy()
 
 # Convert season to display format
 display_df['season'] = display_df['season'].map(SEASON_DISPLAY_NAMES)
 
-display_df.columns = ['Player', 'Team', 'League', 'Season', 'Goals', 'Assists', 'G+A', 'Contribution %', 'Games']
+# Set column names
+col_names = ['Player', 'Team', 'League', 'Season', 'Games', 'Goals', 'Assists', 'G+A', 'Contribution %']
+if has_xg:
+    col_names.extend(['xG', 'xA', 'xG %', 'G-xG'])
+display_df.columns = col_names
 
 # Sort by contributions descending
 display_df = display_df.sort_values('G+A', ascending=False)
 
 # Style the dataframe
-styled_df = display_df.style.format({
+format_dict = {
     'Contribution %': '{:.1f}%',
     'Goals': '{:.0f}',
     'Assists': '{:.0f}',
     'G+A': '{:.0f}',
     'Games': '{:.0f}'
-})
+}
+if has_xg:
+    format_dict['xG'] = '{:.2f}'
+    format_dict['xA'] = '{:.2f}'
+    format_dict['xG %'] = '{:.1f}%'
+    format_dict['G-xG'] = lambda x: f"+{x:.2f}" if pd.notna(x) and x > 0 else f"{x:.2f}" if pd.notna(x) else ""
+
+styled_df = display_df.style.format(format_dict)
 
 st.dataframe(
     styled_df,
@@ -376,6 +438,46 @@ with col3:
 with col4:
     if highest_pct is not None:
         st.metric("Highest Impact", f"{highest_pct['Player']}", f"{highest_pct['Contribution %']:.1f}% of team goals")
+
+# xG Quick Stats (if available)
+if has_xg:
+    st.divider()
+    st.subheader("xG Quick Stats")
+    
+    col5, col6, col7, col8 = st.columns(4)
+    
+    # Most Clinical (>5 goals, highest G-xG)
+    clinical_df = display_df[display_df['Goals'] > 5]
+    most_clinical = clinical_df.nlargest(1, 'G-xG').iloc[0] if len(clinical_df) > 0 else None
+    
+    # Most Creative (highest xA)
+    most_creative = display_df.nlargest(1, 'xA').iloc[0] if len(display_df) > 0 else None
+    
+    # Highest xG
+    highest_xg = display_df.nlargest(1, 'xG').iloc[0] if len(display_df) > 0 else None
+    
+    # Most Wasteful (>5 goals, lowest G-xG)
+    most_wasteful = clinical_df.nsmallest(1, 'G-xG').iloc[0] if len(clinical_df) > 0 else None
+    
+    with col5:
+        if most_clinical is not None:
+            st.metric("Most Clinical", f"{most_clinical['Player']}", f"+{most_clinical['G-xG']:.2f} G-xG")
+        else:
+            st.metric("Most Clinical", "N/A", "Need >5 goals")
+    
+    with col6:
+        if most_creative is not None:
+            st.metric("Most Creative", f"{most_creative['Player']}", f"{most_creative['xA']:.2f} xA")
+    
+    with col7:
+        if highest_xg is not None:
+            st.metric("Highest xG", f"{highest_xg['Player']}", f"{highest_xg['xG']:.2f} xG")
+    
+    with col8:
+        if most_wasteful is not None and most_wasteful['G-xG'] < 0:
+            st.metric("Most Wasteful", f"{most_wasteful['Player']}", f"{most_wasteful['G-xG']:.2f} G-xG")
+        else:
+            st.metric("Most Wasteful", "N/A", "All efficient!")
 
 # Footer
 st.divider()

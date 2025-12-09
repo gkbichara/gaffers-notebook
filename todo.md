@@ -69,7 +69,7 @@ def load_elo_ratings():
 | `elo_ratings` | team, league, elo_rating, matches_played | Leaderboard |
 | `elo_match_history` | date, home_team, away_team, home_rating_after, away_rating_after | Rating trends |
 | `team_stats` | league, season, team, match_number, cumulative | YoY charts (points) |
-| `player_stats` | league, season, player, team, goals, assists, contribution_pct | Player analysis |
+| `player_stats` | league, season, player, team, goals, assists, xg, xa, npxg, goals_minus_xg | Player analysis |
 | `understat_team_matches` | league, season, team, opponent, xg_for, xg_against | xG Analysis |
 | `raw_matches` | All match data | Deep dives |
 
@@ -80,7 +80,7 @@ def load_elo_ratings():
 
 ---
 
-## ✅ xG Analysis — COMPLETE
+## ✅ xG Analysis — COMPLETE (All Phases)
 
 ### Phase 1: Data Foundation ✅
 - [x] Create `understat_team_matches` table in Supabase
@@ -102,13 +102,14 @@ def load_elo_ratings():
 - [x] xG YoY comparison (expandable section)
 - [x] Match-by-match details table
 
-### Phase 3: Player Stats Enhancement
-- [ ] Add columns to `player_stats`: xg, xa, xg_pct, xa_pct, goals_minus_xg
-- [ ] Update player scraper to extract xG/xA from Understat
-- [ ] Add xG columns to Player Stats page table
-- [ ] Add "Most Clinical" metric (highest Goals - xG)
+### Phase 3: Player Stats Enhancement ✅
+- [x] Add columns to `player_stats`: xg, xa, npxg, xg_pct, shots, minutes, goals_minus_xg
+- [x] Update player scraper to extract xG/xA from Understat (via API)
+- [x] Backfill all leagues/seasons with xG data (16,000+ players)
+- [x] Add "Most Clinical" metric on Home page (highest Goals - xG, >5 goals)
+- [x] Add "Most Creative" metric on Home page (highest xA)
 
-### Phase 4: Future Tabs (Deferred)
+### Phase 4: Future Pages (Planned)
 - [ ] **Team Deep Dive** — Player reliance, attack/defense profiles, form trends
 - [ ] **Predictions** — ELO + xG model for match predictions
 
